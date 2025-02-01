@@ -1,0 +1,6 @@
+<p>Are you sure you want to delete {{ cat.student.name }}'s CAT for {{ cat.subject.name }}?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, Delete</button>
+</form>
+<a href="{% url 'cat_list' %}">Cancel</a>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Class</title>
+</head>
+<body>
+    <h1>Are you sure you want to delete {{ class_instance.name }} - {{ class_instance.stream }}?</h1>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Yes, delete</button>
+    </form>
+    <a href="{% url 'class_list' %}">Cancel</a>
+</body>
+</html>

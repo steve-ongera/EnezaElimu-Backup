@@ -1,0 +1,8 @@
+<h1>Student List</h1>
+<ul>
+    {% for student in students %}
+        <li>
+            <a href="{% url 'student_progress' student.id %}">{{ student.name }}</a> - {{ student.admission_number }}
+        </li>
+    {% endfor %}
+</ul>

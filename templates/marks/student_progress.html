@@ -1,0 +1,54 @@
+
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Progress Report for {{ student.name }}</h1>
+    <p class="mb-4">Admission Number: {{ student.admission_number }}</p>
+    <p class="mb-6">Current Class: {{ student.current_class }}</p>
+
+    {% for term_data in progress_data %}
+    <div class="mb-8 bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">{{ term_data.term.name }} {{ term_data.term.year }}</h2>
+        
+        <!-- Term Summary -->
+        <div class="mb-4 p-4 bg-gray-50 rounded">
+            <p class="font-semibold">Term Average: {{ term_data.term_average }}</p>
+            <p>Overall Grade: {{ term_data.overall_grade }}</p>
+            <p>Position: {{ term_data.position }}</p>
+        </div>
+
+        <!-- Subject Details -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="px-4 py-2 text-left">Subject</th>
+                        <th class="px-4 py-2 text-center">CAT 1</th>
+                        <th class="px-4 py-2 text-center">CAT 2</th>
+                        <th class="px-4 py-2 text-center">CAT 3</th>
+                        <th class="px-4 py-2 text-center">Average</th>
+                        <th class="px-4 py-2 text-center">Grade</th>
+                        <th class="px-4 py-2 text-center">Points</th>
+                        <th class="px-4 py-2 text-center">Position</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subject in term_data.subjects %}
+                    <tr class="border-t">
+                        <td class="px-4 py-2">{{ subject.subject.name }}</td>
+                        <td class="px-4 py-2 text-center">{{ subject.cat1|floatformat:2 }}</td>
+                        <td class="px-4 py-2 text-center">{{ subject.cat2|floatformat:2 }}</td>
+                        <td class="px-4 py-2 text-center">{{ subject.cat3|floatformat:2 }}</td>
+                        <td class="px-4 py-2 text-center">{{ subject.average }}</td>
+                        <td class="px-4 py-2 text-center">{{ subject.grade }}</td>
+                        <td class="px-4 py-2 text-center">{{ subject.grade_points }}</td>
+                        <td class="px-4 py-2 text-center">{{ subject.position }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <hr>
+    {% endfor %}
+   
+</div>
+

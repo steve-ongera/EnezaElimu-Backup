@@ -1,0 +1,101 @@
+<!-- templates/students/profile.html -->
+
+<div class="container py-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Student Profile</h3>
+            <a href="{% url 'edit_student_profile' %}" class="btn btn-primary">Edit Profile</a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Personal Information -->
+                <div class="col-md-6">
+                    <h4>Personal Information</h4>
+                    <table class="table">
+                        <tr>
+                            <th>Name:</th>
+                            <td>{{ student.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Admission Number:</th>
+                            <td>{{ student.admission_number }}</td>
+                        </tr>
+                        <tr>
+                            <th>Class:</th>
+                            <td>{{ student.current_class }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date of Birth:</th>
+                            <td>{{ student.date_of_birth }}</td>
+                        </tr>
+                        <tr>
+                            <th>Age:</th>
+                            <td>{{ student.get_age }} years</td>
+                        </tr>
+                        <tr>
+                            <th>Address:</th>
+                            <td>{{ student.address|default:"Not provided" }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Parent Information -->
+                <div class="col-md-6">
+                    <h4>Parent Information</h4>
+                    <table class="table">
+                        <tr>
+                            <th>Father's Name:</th>
+                            <td>{{ student.father_name|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Father's Phone:</th>
+                            <td>{{ student.father_phone|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Mother's Name:</th>
+                            <td>{{ student.mother_name|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Mother's Phone:</th>
+                            <td>{{ student.mother_phone|default:"Not provided" }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Emergency Contact -->
+                <div class="col-md-6">
+                    <h4>Emergency Contact</h4>
+                    <table class="table">
+                        <tr>
+                            <th>Name:</th>
+                            <td>{{ student.emergency_contact_name|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Phone:</th>
+                            <td>{{ student.emergency_contact_phone|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Relationship:</th>
+                            <td>{{ student.emergency_contact_relationship|default:"Not provided" }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Medical Information -->
+                <div class="col-md-6">
+                    <h4>Medical Information</h4>
+                    <table class="table">
+                        <tr>
+                            <th>Blood Group:</th>
+                            <td>{{ student.blood_group|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Medical Conditions:</th>
+                            <td>{{ student.medical_conditions|default:"None reported" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

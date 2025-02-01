@@ -1,0 +1,6 @@
+<p>Are you sure you want to delete {{ term.name }} {{ term.year }}?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, Delete</button>
+</form>
+<a href="{% url 'term_list' %}">Cancel</a>

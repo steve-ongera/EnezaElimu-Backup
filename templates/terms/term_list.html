@@ -1,0 +1,4 @@
+{% for term in terms %}
+    <p>{{ term.name }} {{ term.year }} - <a href="{% url 'term_detail' term.pk %}">View</a></p>
+{% endfor %}
+<a href="{% url 'term_create' %}">Add New Term</a>

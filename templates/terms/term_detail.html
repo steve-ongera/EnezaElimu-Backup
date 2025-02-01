@@ -1,0 +1,4 @@
+<p>Term: {{ term.name }} {{ term.year }}</p>
+<a href="{% url 'term_update' term.pk %}">Edit</a>
+<a href="{% url 'term_delete' term.pk %}">Delete</a>
+<a href="{% url 'term_list' %}">Back to List</a>

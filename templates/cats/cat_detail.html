@@ -1,0 +1,13 @@
+<p>Student: {{ cat.student.name }}</p>
+<p>Subject: {{ cat.subject.name }}</p>
+<p>Term: {{ cat.term.name }}</p>
+<p>CAT1: {{ cat.cat1 }}</p>
+<p>CAT2: {{ cat.cat2 }}</p>
+<p>CAT3: {{ cat.cat3 }}</p>
+<p>End Term: {{ cat.end_term }}</p>
+<p>Grade Points: {{ cat.grade_points }}</p>
+<p>Letter Grade: {{ cat.letter_grade }}</p>
+<p>Position: {{ cat.position }}</p>
+<a href="{% url 'cat_update' cat.pk %}">Edit</a>
+<a href="{% url 'cat_delete' cat.pk %}">Delete</a>
+<a href="{% url 'cat_list' %}">Back to List</a>

@@ -1,0 +1,8 @@
+{% for cat in cats %}
+    <p>{{ cat.student.name }} - {{ cat.subject.name }} - {{ cat.term.name }} - 
+        <a href="{% url 'cat_detail' cat.pk %}">View</a> | 
+        <a href="{% url 'cat_update' cat.pk %}">Edit</a> | 
+        <a href="{% url 'cat_delete' cat.pk %}">Delete</a>
+    </p>
+{% endfor %}
+<a href="{% url 'cat_create' %}">Add New CAT</a>
