@@ -1446,3 +1446,82 @@ def student_results(request):
             messages.error(request, f"An error occurred: {str(e)}")
     
     return render(request, 'results/student_results_form.html')
+
+
+#admin dashboard
+# views.py
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import Student, Teacher, Staff, NonStaff
+from django.db.models import Count
+import json
+
+from django.shortcuts import render
+from django.db.models import Count
+from django.db.models.functions import ExtractYear
+from .models import Student
+import json
+
+@login_required
+def admin_dashboard(request):
+    # Get student counts grouped by year
+    yearly_data = Student.objects.annotate(year=ExtractYear('admission_date'))\
+        .values('year')\
+        .annotate(count=Count('id'))\
+        .order_by('year')
+    
+    # Prepare data for the chart
+    years = []
+    counts = []
+    cumulative_counts = []
+    running_total = 0
+    
+    for data in yearly_data:
+        if data['year']:  # Ensure year is not None
+            years.append(data['year'])  # Store only the year
+            counts.append(data['count'])
+            running_total += data['count']
+            cumulative_counts.append(running_total)
+    
+    # Calculate year-over-year growth
+    growth_rates = []
+    for i in range(1, len(counts)):
+        if counts[i-1] > 0:
+            growth = ((counts[i] - counts[i-1]) / counts[i-1]) * 100
+            growth_rates.append(round(growth, 1))
+        else:
+            growth_rates.append(0)
+    growth_rates.insert(0, 0)  # No growth rate for first year
+
+
+    # Get counts
+    student_count = Student.objects.count()
+    teacher_count = Teacher.objects.count()
+    staff_count = Staff.objects.count()
+    nonstaff_count = NonStaff.objects.count()
+    
+    # Prepare data for chart
+    chart_data = [
+        {'name': 'Students', 'count': student_count, 'color': '#2563eb'},
+        {'name': 'Teachers', 'count': teacher_count, 'color': '#16a34a'},
+        {'name': 'Staff', 'count': staff_count, 'color': '#dc2626'},
+        {'name': 'Non-Staff', 'count': nonstaff_count, 'color': '#ca8a04'}
+    ]
+    
+    context = {
+        'student_count': student_count,
+        'teacher_count': teacher_count,
+        'staff_count': staff_count,
+        'nonstaff_count': nonstaff_count,
+        'chart_data': json.dumps(chart_data),
+
+        'years': json.dumps(years),  # Years as integers (2020, 2021, etc.)
+        'counts': json.dumps(counts),
+        'cumulative_counts': json.dumps(cumulative_counts),
+        'growth_rates': json.dumps(growth_rates),
+        'total_students': sum(counts),
+        'latest_year_count': counts[-1] if counts else 0,
+        'yearly_data': yearly_data,
+    }
+    
+    return render(request, 'dashboard/admin_dashboard.html', context)

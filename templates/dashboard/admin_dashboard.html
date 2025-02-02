@@ -1,0 +1,228 @@
+<!-- templates/dashboard/admin_dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<!-- Include Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">School Dashboard</h1>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Students Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-gray-500 text-sm">Total Students</h3>
+                <span class="text-blue-600">
+                    <i class="fas fa-graduation-cap"></i>
+                </span>
+            </div>
+            <p class="text-2xl font-bold">{{ student_count }}</p>
+        </div>
+        
+        <!-- Teachers Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-gray-500 text-sm">Teachers</h3>
+                <span class="text-green-600">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </span>
+            </div>
+            <p class="text-2xl font-bold">{{ teacher_count }}</p>
+        </div>
+        
+        <!-- Staff Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-gray-500 text-sm">Staff Members</h3>
+                <span class="text-red-600">
+                    <i class="fas fa-users"></i>
+                </span>
+            </div>
+            <p class="text-2xl font-bold">{{ staff_count }}</p>
+        </div>
+        
+        <!-- Non-Staff Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-gray-500 text-sm">Non-Staff Members</h3>
+                <span class="text-yellow-600">
+                    <i class="fas fa-user"></i>
+                </span>
+            </div>
+            <p class="text-2xl font-bold">{{ nonstaff_count }}</p>
+        </div>
+    </div>
+    
+    <!-- Chart -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-bold mb-4">Population Distribution</h2>
+        <div class="h-[400px] w-full">
+            <canvas id="populationChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Parse the chart data passed from Django
+    const chartData = {{ chart_data|safe }};
+    
+    // Prepare data for Chart.js
+    const labels = chartData.map(item => item.name);
+    const data = chartData.map(item => item.count);
+    const colors = chartData.map(item => item.color);
+    
+    // Create the donut chart
+    const ctx = document.getElementById('populationChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">Student Population Trends</h1>
+    
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-gray-500 text-sm mb-2">Total Students</h3>
+            <p class="text-2xl font-bold">{{ total_students }}</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-gray-500 text-sm mb-2">Latest Year Admissions</h3>
+            <p class="text-2xl font-bold">{{ latest_year_count }}</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-gray-500 text-sm mb-2">Years of Data</h3>
+            <p class="text-2xl font-bold">{{ yearly_data|length }}</p>
+        </div>
+    </div>
+    
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Yearly Admissions Chart -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">Yearly Admissions</h2>
+            <canvas id="yearlyAdmissionsChart"></canvas>
+        </div>
+        
+        <!-- Cumulative Growth Chart -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">Cumulative Growth</h2>
+            <canvas id="cumulativeGrowthChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+<script>
+    // Parse data from Django
+    const years = {{ years|safe }};
+    const counts = {{ counts|safe }};
+    const cumulativeCounts = {{ cumulative_counts|safe }};
+    const growthRates = {{ growth_rates|safe }};
+    
+    // Yearly Admissions Chart
+    new Chart(document.getElementById('yearlyAdmissionsChart'), {
+        type: 'bar',
+        data: {
+            labels: years,
+            datasets: [{
+                label: 'New Students',
+                data: counts,
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 1
+            }, {
+                label: 'Growth Rate (%)',
+                data: growthRates,
+                type: 'line',
+                borderColor: 'rgb(220, 38, 38)',
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Students'
+                    }
+                },
+                y1: {
+                    position: 'right',
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Growth Rate (%)'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Cumulative Growth Chart
+    new Chart(document.getElementById('cumulativeGrowthChart'), {
+        type: 'line',
+        data: {
+            labels: years,
+            datasets: [{
+                label: 'Total Students',
+                data: cumulativeCounts,
+                borderColor: 'rgb(16, 185, 129)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Total Students'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
