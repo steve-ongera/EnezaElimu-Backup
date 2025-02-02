@@ -1,0 +1,11 @@
+<h2>{{ teacher.first_name }} {{ teacher.last_name }}</h2>
+  <p>ID Number: {{ teacher.id_number }}</p>
+  <p>Email: {{ teacher.email }}</p>
+  <p>Phone: {{ teacher.phone }}</p>
+  <p>Assigned Class: {{ teacher.assigned_class }}</p>
+  <p>Department: {{ teacher.department }}</p>
+  <p>Position: {{ teacher.position }}</p>
+  <p>Date of Birth: {{ teacher.date_of_birth }}</p>
+  <img src="{{ teacher.profile_image.url }}" alt="Profile Image">
+  <p><a href="{% url 'teacher_edit' teacher.id %}">Edit</a> | 
+     <a href="{% url 'teacher_delete' teacher.id %}">Delete</a></p>

@@ -1,0 +1,10 @@
+<h2>Non-Staff Members</h2>
+<ul>
+    {% for nonstaff in nonstaff_members %}
+        <li>
+            <a href="{% url 'nonstaff_detail' nonstaff.pk %}">{{ nonstaff.first_name }} {{ nonstaff.last_name }}</a> - 
+            <a href="{% url 'update_nonstaff' nonstaff.pk %}">Edit</a> |
+            <a href="{% url 'delete_nonstaff' nonstaff.pk %}">Delete</a>
+        </li>
+    {% endfor %}
+</ul>

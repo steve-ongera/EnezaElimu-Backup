@@ -65,6 +65,30 @@ urlpatterns = [
     path('rankings/', views.student_rankings, name='student_rankings'),
     path('stream-performance/', views.stream_performance, name='stream_performance'),
     path('subject-performance/', views.subject_performance, name='subject_performance'),
+
+    path('teachers/', views.teacher_list, name='teacher_list'),
+    path('teachers/create/', views.teacher_create, name='teacher_create'),
+    path('teachers/<int:teacher_id>/', views.teacher_detail, name='teacher_detail'),
+    path('teachers/<int:teacher_id>/edit/', views.teacher_edit, name='teacher_edit'),
+    path('teachers/<int:teacher_id>/delete/', views.teacher_delete, name='teacher_delete'),
+
+    path('staff/create/', views.create_staff, name='create_staff'),
+    path('staff/', views.staff_list, name='staff_list'),
+    path('staff/<int:pk>/', views.staff_detail, name='staff_detail'),
+    path('staff/update/<int:pk>/', views.update_staff, name='update_staff'),
+    path('staff/delete/<int:pk>/', views.delete_staff, name='delete_staff'),
+
+    path('nonstaff/create/', views.create_nonstaff, name='create_nonstaff'),
+    path('nonstaff/', views.nonstaff_list, name='nonstaff_list'),
+    path('nonstaff/<int:pk>/', views.nonstaff_detail, name='nonstaff_detail'),
+    path('nonstaff/update/<int:pk>/', views.update_nonstaff, name='update_nonstaff'),
+    path('nonstaff/delete/<int:pk>/', views.delete_nonstaff, name='delete_nonstaff'),
+
+    path('intern/create/', views.create_intern, name='create_intern'),
+    path('intern/', views.intern_list, name='intern_list'),
+    path('intern/<int:pk>/', views.intern_detail, name='intern_detail'),
+    path('intern/update/<int:pk>/', views.update_intern, name='update_intern'),
+    path('intern/delete/<int:pk>/', views.delete_intern, name='delete_intern'),
     
     
 ]

@@ -5,6 +5,15 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
+class Department(models.Model):
+    head_of_department = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    
+    def __str__(self):
+        return self.name
+
+
 class Class_of_study(models.Model):
     name = models.CharField(max_length=50)  # Form 1, Form 2, etc.
     stream = models.CharField(max_length=50)  # Stream A, B, C, etc.
@@ -215,3 +224,118 @@ def generate_unique_teacher_code(sender, instance, **kwargs):
         while Teacher.objects.filter(teacher_code=unique_code).exists():
             unique_code = generate_teacher_code()
         instance.teacher_code = unique_code
+
+
+
+
+class Staff(models.Model):
+    # Basic Information
+    id_number = models.CharField(max_length=20, unique=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=15, unique=True)
+    address = models.TextField(null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], null=True, blank=True)
+    nationality = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Employment Details
+    department = models.CharField(max_length=100, null=True, blank=True)
+    position = models.CharField(max_length=100, null=True, blank=True)  # e.g., Admin, Teacher, Security, etc.
+    employment_date = models.DateField(null=True, blank=True)
+    salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=[('Active', 'Active'), ('Inactive', 'Inactive')], default='Active')
+
+    # Profile Picture
+    profile_image = models.ImageField(upload_to="staff_profiles/", default="profile.png", null=True, blank=True)
+    
+    # Emergency Contact
+    emergency_contact_name = models.CharField(max_length=100, null=True, blank=True)
+    emergency_contact_phone = models.CharField(max_length=15, null=True, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['first_name', 'last_name']
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.position})"
+
+
+
+class NonStaff(models.Model):
+    # Basic Information
+    id_number = models.CharField(max_length=20, unique=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=15, unique=True)
+    address = models.TextField(null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], null=True, blank=True)
+    nationality = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Non-Staff Role (e.g., Cleaner, Security, etc.)
+    role = models.CharField(max_length=100, null=True, blank=True)
+    hire_date = models.DateField(null=True, blank=True)
+    salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Profile Picture
+    profile_image = models.ImageField(upload_to="nonstaff_profiles/", default="profile.png", null=True, blank=True)
+
+    # Emergency Contact
+    emergency_contact_name = models.CharField(max_length=100, null=True, blank=True)
+    emergency_contact_phone = models.CharField(max_length=15, null=True, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['first_name', 'last_name']
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.role})"
+
+
+class Intern(models.Model):
+    # Basic Information
+    id_number = models.CharField(max_length=20, unique=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=15, unique=True)
+    address = models.TextField(null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], null=True, blank=True)
+    nationality = models.CharField(max_length=50, null=True, blank=True)
+
+    # Internship Details
+    department = models.CharField(max_length=100, null=True, blank=True)
+    position = models.CharField(max_length=100, null=True, blank=True)  # e.g., IT Intern, Admin Intern
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    stipend = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    # Profile Picture
+    profile_image = models.ImageField(upload_to="intern_profiles/", default="profile.png", null=True, blank=True)
+    
+    # Emergency Contact
+    emergency_contact_name = models.CharField(max_length=100, null=True, blank=True)
+    emergency_contact_phone = models.CharField(max_length=15, null=True, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=50, null=True, blank=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['first_name', 'last_name']
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.position})"

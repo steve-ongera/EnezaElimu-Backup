@@ -1208,3 +1208,185 @@ def _get_letter_grade(points):
     elif points >= 2.0:
         return 'C'
     return 'F'
+
+
+
+
+# Create Teacher
+def teacher_create(request):
+    if request.method == 'POST':
+        form = TeacherForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Teacher added successfully!')
+            return redirect('teacher_list')  # Redirect to teacher list page
+    else:
+        form = TeacherForm()
+    return render(request, 'teachers/teacher_form.html', {'form': form})
+
+# Teacher Detail View
+def teacher_detail(request, teacher_id):
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    return render(request, 'teachers/teacher_detail.html', {'teacher': teacher})
+
+# Edit Teacher
+def teacher_edit(request, teacher_id):
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    if request.method == 'POST':
+        form = TeacherEditForm(request.POST, request.FILES, instance=teacher)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Teacher details updated successfully!')
+            return redirect('teacher_list')
+    else:
+        form = TeacherEditForm(instance=teacher)
+    return render(request, 'teachers/teacher_form.html', {'form': form})
+
+# Delete Teacher
+def teacher_delete(request, teacher_id):
+    teacher = get_object_or_404(Teacher, id=teacher_id)
+    if request.method == 'POST':
+        teacher.delete()
+        messages.success(request, 'Teacher deleted successfully!')
+        return redirect('teacher_list')
+    return render(request, 'teachers/teacher_confirm_delete.html', {'teacher': teacher})
+
+# List of all Teachers
+def teacher_list(request):
+    teachers = Teacher.objects.all()
+    return render(request, 'teachers/teacher_list.html', {'teachers': teachers})
+
+
+
+
+# Create View
+def create_staff(request):
+    if request.method == 'POST':
+        form = StaffForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('staff_list')
+    else:
+        form = StaffForm()
+    return render(request, 'staff/create_staff.html', {'form': form})
+
+# List View (Read)
+def staff_list(request):
+    staff_members = Staff.objects.all()
+    return render(request, 'staff/staff_list.html', {'staff_members': staff_members})
+
+# Detail View
+def staff_detail(request, pk):
+    staff_member = get_object_or_404(Staff, pk=pk)
+    return render(request, 'staff/staff_detail.html', {'staff_member': staff_member})
+
+# Update View
+def update_staff(request, pk):
+    staff_member = get_object_or_404(Staff, pk=pk)
+    if request.method == 'POST':
+        form = StaffForm(request.POST, request.FILES, instance=staff_member)
+        if form.is_valid():
+            form.save()
+            return redirect('staff_list')
+    else:
+        form = StaffForm(instance=staff_member)
+    return render(request, 'staff/update_staff.html', {'form': form})
+
+# Delete View
+def delete_staff(request, pk):
+    staff_member = get_object_or_404(Staff, pk=pk)
+    if request.method == 'POST':
+        staff_member.delete()
+        return redirect('staff_list')
+    return render(request, 'staff/delete_staff.html', {'staff_member': staff_member})
+
+
+
+
+
+# Create View
+def create_nonstaff(request):
+    if request.method == 'POST':
+        form = NonStaffForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('nonstaff_list')
+    else:
+        form = NonStaffForm()
+    return render(request, 'nonstaff/create_nonstaff.html', {'form': form})
+
+# List View (Read)
+def nonstaff_list(request):
+    nonstaff_members = NonStaff.objects.all()
+    return render(request, 'nonstaff/nonstaff_list.html', {'nonstaff_members': nonstaff_members})
+
+# Detail View
+def nonstaff_detail(request, pk):
+    nonstaff_member = get_object_or_404(NonStaff, pk=pk)
+    return render(request, 'nonstaff/nonstaff_detail.html', {'nonstaff_member': nonstaff_member})
+
+# Update View
+def update_nonstaff(request, pk):
+    nonstaff_member = get_object_or_404(NonStaff, pk=pk)
+    if request.method == 'POST':
+        form = NonStaffForm(request.POST, request.FILES, instance=nonstaff_member)
+        if form.is_valid():
+            form.save()
+            return redirect('nonstaff_list')
+    else:
+        form = NonStaffForm(instance=nonstaff_member)
+    return render(request, 'nonstaff/update_nonstaff.html', {'form': form})
+
+# Delete View
+def delete_nonstaff(request, pk):
+    nonstaff_member = get_object_or_404(NonStaff, pk=pk)
+    if request.method == 'POST':
+        nonstaff_member.delete()
+        return redirect('nonstaff_list')
+    return render(request, 'nonstaff/delete_nonstaff.html', {'nonstaff_member': nonstaff_member})
+
+
+
+
+
+# Create View
+def create_intern(request):
+    if request.method == 'POST':
+        form = InternForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('intern_list')
+    else:
+        form = InternForm()
+    return render(request, 'intern/create_intern.html', {'form': form})
+
+# List View (Read)
+def intern_list(request):
+    interns = Intern.objects.all()
+    return render(request, 'intern/intern_list.html', {'interns': interns})
+
+# Detail View
+def intern_detail(request, pk):
+    intern = get_object_or_404(Intern, pk=pk)
+    return render(request, 'intern/intern_detail.html', {'intern': intern})
+
+# Update View
+def update_intern(request, pk):
+    intern = get_object_or_404(Intern, pk=pk)
+    if request.method == 'POST':
+        form = InternForm(request.POST, request.FILES, instance=intern)
+        if form.is_valid():
+            form.save()
+            return redirect('intern_list')
+    else:
+        form = InternForm(instance=intern)
+    return render(request, 'intern/update_intern.html', {'form': form})
+
+# Delete View
+def delete_intern(request, pk):
+    intern = get_object_or_404(Intern, pk=pk)
+    if request.method == 'POST':
+        intern.delete()
+        return redirect('intern_list')
+    return render(request, 'intern/delete_intern.html', {'intern': intern})
+

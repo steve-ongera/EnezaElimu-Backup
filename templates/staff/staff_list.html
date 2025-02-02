@@ -1,0 +1,10 @@
+<h2>Staff Members</h2>
+<ul>
+    {% for staff in staff_members %}
+        <li>
+            <a href="{% url 'staff_detail' staff.pk %}">{{ staff.first_name }} {{ staff.last_name }}</a> - 
+            <a href="{% url 'update_staff' staff.pk %}">Edit</a> |
+            <a href="{% url 'delete_staff' staff.pk %}">Delete</a>
+        </li>
+    {% endfor %}
+</ul>

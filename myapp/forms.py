@@ -89,3 +89,56 @@ class CATForm(forms.ModelForm):
 
 class StudentSearchForm(forms.Form):
     query = forms.CharField(label="Search Student", max_length=100, required=False)
+
+
+
+
+class TeacherForm(forms.ModelForm):
+    class Meta:
+        model = Teacher
+        fields = ['id_number', 'first_name', 'last_name', 'email', 'phone', 'address', 'assigned_class', 
+                  'profile_image', 'date_of_birth', 'gender', 'nationality', 'employment_date', 'department', 
+                  'position', 'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship']
+    
+class TeacherEditForm(forms.ModelForm):
+    class Meta:
+        model = Teacher
+        fields = ['id_number', 'first_name', 'last_name', 'email', 'phone', 'address', 'assigned_class', 
+                  'profile_image', 'date_of_birth', 'gender', 'nationality', 'employment_date', 'department', 
+                  'position', 'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship']
+
+
+
+
+class StaffForm(forms.ModelForm):
+    class Meta:
+        model = Staff
+        fields = [
+            'id_number', 'first_name', 'last_name', 'email', 'phone', 'address',
+            'date_of_birth', 'gender', 'nationality', 'department', 'position',
+            'employment_date', 'salary', 'status', 'profile_image', 
+            'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship'
+        ]
+
+
+class NonStaffForm(forms.ModelForm):
+    class Meta:
+        model = NonStaff
+        fields = [
+            'id_number', 'first_name', 'last_name', 'email', 'phone', 'address',
+            'date_of_birth', 'gender', 'nationality', 'role', 'hire_date', 
+            'salary', 'profile_image', 
+            'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship'
+        ]
+
+
+
+class InternForm(forms.ModelForm):
+    class Meta:
+        model = Intern
+        fields = [
+            'id_number', 'first_name', 'last_name', 'email', 'phone', 'address',
+            'date_of_birth', 'gender', 'nationality', 'department', 'position',
+            'start_date', 'end_date', 'stipend', 'profile_image',
+            'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship'
+        ]
