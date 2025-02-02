@@ -19,3 +19,8 @@ admin.site.register(Staff)
 admin.site.register(NonStaff)
 admin.site.register(Intern)
 admin.site.register(Department)
+
+admin.site.register(Profile)
+admin.site.register(Activity)
+admin.site.register(Message)
+admin.site.register(NewsUpdate)

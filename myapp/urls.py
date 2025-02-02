@@ -17,10 +17,18 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.custom_login, name='login'),
     path('logout/', views.custom_logout, name='logout'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-password/<uidb64>/<token>/', views.reset_password, name='reset_password'),
+    
     path('student_dashboard/', views.student_dashboard, name='student_dashboard'),
     path('individual_student_progress/' , views.individual_student_progress , name='individual_student_progress'),
-    path('profile/', views.student_profile, name='student_profile'),
-    path('profile/edit/', views.edit_student_profile, name='edit_student_profile'),
+
+
+    path('student_profile/', views.student_profile, name='student_profile'),
+    path('student_profile/edit/', views.edit_student_profile, name='edit_student_profile'),
+    path('profile_detail/', views.profile_detail, name='profile_detail'),
+    path('create-profile/', views.create_profile, name='create_profile'),
+    path('edit-profile/', views.edit_profile, name='edit_profile'),
 
     #classs list view
     path('class_lists/', views.class_list, name='class_list'),
@@ -94,4 +102,11 @@ urlpatterns = [
     
     path('help-and-support/', views.help_and_support, name='help_and_support'),
     path('system-settings/', views.system_settings, name='system_settings'),
+
+    path('news/<int:pk>/edit/', views.news_edit, name='news_edit'),
+    path('news/<int:pk>/delete/', views.news_delete, name='news_delete'),
+
+    path('messages/<str:username>/', views.send_message, name='message_thread'),
+    path('messages/', views.message_list, name='message_list'),
+    path('messages/create/<str:username>/', views.create_chat, name='create_chat'),
 ]

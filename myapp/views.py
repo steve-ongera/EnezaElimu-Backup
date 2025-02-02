@@ -25,6 +25,14 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str  # use force_str instead of force_text
 Account = get_user_model()
 
+from django.http import HttpResponseForbidden
+
+from django.utils import timezone
+import datetime
+from datetime import datetime
+from django.utils import timezone
+from datetime import timedelta
+
 def register(request):
     if request.method == "POST":
         form = StudentRegistrationForm(request.POST)
@@ -1632,3 +1640,203 @@ def admin_dashboard(request):
     }
     
     return render(request, 'dashboard/admin_dashboard.html', context)
+
+
+@login_required
+def profile_detail(request):
+    try:
+        # Get or create the user's profile
+        profile, created = Profile.objects.get_or_create(user=request.user)
+    except Profile.DoesNotExist:
+        profile = None
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()  # Save the form with the new image
+            return redirect('profile_detail')
+    else:
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'auth/profile_detail.html', {
+        'profile': profile,
+        'form': form,
+    })
+
+
+@login_required
+def create_profile(request):
+    # Check if the logged-in user already has a profile
+    if hasattr(request.user, 'profile'):
+        return redirect('profile_detail')  # If the user already has a profile, redirect to profile detail
+
+    # Handle the form submission
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES)
+        if form.is_valid():
+            profile = form.save(commit=False)
+            profile.user = request.user  # Associate the profile with the logged-in user
+            profile.save()
+            return redirect('profile_detail')  # Redirect to profile detail after saving
+
+    else:
+        form = ProfileForm()
+
+    return render(request, 'auth/create_profile.html', {'form': form})
+
+
+@login_required
+def edit_profile(request):
+    # Get the user's profile
+    profile = Profile.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        # Bind the form to the POST data
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            # Save the updated profile
+            form.save()
+            return redirect('profile_detail')  # Redirect to the profile page after saving
+    else:
+        # Create an empty form bound to the current profile
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'auth/edit_profile.html', {'form': form})
+
+
+@login_required
+def news_edit(request, pk):
+    news = get_object_or_404(NewsUpdate, pk=pk)
+
+    # Ensure only the creator can edit
+    if news.created_by != request.user:
+        return redirect('dashboard')  # Redirect to a suitable page, e.g., the home page
+
+    if request.method == 'POST':
+        form = NewsUpdateForm(request.POST, request.FILES, instance=news)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')  # Redirect to a suitable page after editing
+    else:
+        form = NewsUpdateForm(instance=news)
+
+    return render(request, 'news/news_edit.html', {'form': form})
+
+
+@login_required
+def news_delete(request, pk):
+    news = get_object_or_404(NewsUpdate, pk=pk)
+
+    # Ensure only the creator can delete
+    if news.created_by != request.user:
+        return HttpResponseForbidden("You are not allowed to delete this news item.")
+
+    if request.method == 'POST':  # Confirm deletion via POST request
+        news.delete()
+        return redirect('dashbaord')  # Redirect to a suitable page after deletion
+
+    return render(request, 'news/news_confirm_delete.html', {'news': news})
+
+
+
+#messaging
+
+@login_required
+def send_message(request, username):
+    receiver = get_object_or_404(User, username=username)
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:  # Ensure the content is not empty
+            Message.objects.create(sender=request.user, receiver=receiver, content=content)
+        return redirect('message_thread', username=username)
+
+    return render(request, 'message/send_message.html', {'receiver': receiver})
+
+@login_required
+def message_thread(request, username):
+    receiver = get_object_or_404(User, username=username)
+    messages = Message.objects.filter(sender=request.user, receiver=receiver) | \
+               Message.objects.filter(sender=receiver, receiver=request.user)
+    messages = messages.order_by('timestamp')
+
+    return render(request, 'message/message_thread.html', {'receiver': receiver, 'messages': messages})
+
+
+@login_required
+def send_message(request, username):
+    receiver = get_object_or_404(User, username=username)
+
+    # Update the last seen time in the session
+    request.session['last_seen'] = timezone.now().isoformat()  # Store as ISO format string
+    
+    if request.method == 'POST':
+        form = MessageForm(request.POST, request.FILES)  # Handle file uploads
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user
+            message.receiver = receiver
+            message.save()
+            return redirect('message_thread', username=username)
+    else:
+        form = MessageForm()
+
+    # Retrieve messages between the sender and receiver
+    messages = Message.objects.filter(
+        sender=request.user, receiver=receiver
+    ) | Message.objects.filter(
+        sender=receiver, receiver=request.user
+    )
+    messages = messages.order_by('timestamp')
+
+   
+    # Last seen
+    last_seen_str = request.session.get('last_seen')  # Retrieve the string
+    last_seen = datetime.fromisoformat(last_seen_str) if last_seen_str else None
+
+    
+    return render(request, 'message/message_thread.html', {
+        'receiver': receiver,
+        'messages': messages,
+        'last_seen': last_seen,  # Pass the datetime object
+        'form': form,  # Pass the form to the template
+    })
+
+
+@login_required
+def message_list(request):
+    sent_messages = Message.objects.filter(sender=request.user).values_list('receiver', flat=True)
+    received_messages = Message.objects.filter(receiver=request.user).values_list('sender', flat=True)
+    
+    # Combine both sender and receiver lists and eliminate duplicates
+    user_ids = set(list(sent_messages) + list(received_messages))
+    users = User.objects.filter(id__in=user_ids)
+    
+    return render(request, 'message/message_list.html', {
+        'users': users
+    })
+
+
+@login_required
+def create_chat(request, username):
+    receiver = get_object_or_404(User, username=username)
+
+    # Check if a message already exists between the logged-in user and the receiver
+    existing_message = Message.objects.filter(
+        (Q(sender=request.user) & Q(receiver=receiver)) | 
+        (Q(sender=receiver) & Q(receiver=request.user))
+    ).first()
+
+    
+    return redirect('message_thread', username=username)
+
+
+@login_required
+def nav_bar_messages(request):
+    # Fetch the latest 3 messages involving the logged-in user
+    messages = Message.objects.filter(
+        Q(sender=request.user) | Q(receiver=request.user)
+    ).order_by('-timestamp')[:3]  # Limit to 3 messages
+
+    return render(request, 'base/navbar.html', {
+        'messages': messages,  # Pass the messages to the context
+    })
