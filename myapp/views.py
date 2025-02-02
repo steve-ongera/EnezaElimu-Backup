@@ -48,7 +48,8 @@ def student_login(request):
 
         if user is not None:
             login(request, user)
-            return redirect('dashboard')  # Redirect to dashboard
+            next_url = request.GET.get('next') or request.POST.get('next')  # Get intended URL
+            return redirect(next_url if next_url else 'dashboard')  # Redirect accordingly
         else:
             messages.error(request, "Invalid admission number or password.")
 
