@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('', views.general_student_list, name='student_list'),
+    path('general_student_list', views.general_student_list, name='general_student_list'),
     path('student/<int:student_id>/term/<int:term_id>/', views.student_marks, name='student_marks'),
     path('student/<int:student_id>/progress/', views.student_progress, name='student_progress'),
 
@@ -15,9 +15,9 @@ urlpatterns = [
     # urls.py
     path('classes/<int:class_id>/terms/<int:term_id>/analysis/', views.subject_analysis, name='subject_analysis'),
     path('register/', views.register, name='register'),
-    path('login/', views.student_login, name='login'),
-    path('logout/', views.student_logout, name='logout'),
-    path('dashboard/', views.dashboard, name='dashboard'),
+    path('login/', views.custom_login, name='login'),
+    path('logout/', views.custom_logout, name='logout'),
+    path('student_dashboard/', views.student_dashboard, name='student_dashboard'),
     path('individual_student_progress/' , views.individual_student_progress , name='individual_student_progress'),
     path('profile/', views.student_profile, name='student_profile'),
     path('profile/edit/', views.edit_student_profile, name='edit_student_profile'),
@@ -92,5 +92,6 @@ urlpatterns = [
     path('intern/update/<int:pk>/', views.update_intern, name='update_intern'),
     path('intern/delete/<int:pk>/', views.delete_intern, name='delete_intern'),
     
-    
+    path('help-and-support/', views.help_and_support, name='help_and_support'),
+    path('system-settings/', views.system_settings, name='system_settings'),
 ]

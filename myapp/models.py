@@ -1,3 +1,11 @@
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils.timezone import now
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.urls import reverse
+from django.utils import timezone
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import models
 import random
 import string
@@ -339,3 +347,71 @@ class Intern(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.position})"
+
+
+#profile model 
+class Profile(models.Model):
+    ROLE_CHOICES = (
+        ('Admin', 'Admin'),
+        ('Staff', 'staff'),
+        
+    )
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    username = models.CharField(max_length=150, blank=True, null=True)
+    about = models.TextField(blank=True, null=True)
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='Staff')
+    full_names = models.CharField(max_length=200)
+    Region = models.CharField(max_length=200, blank=True, null=True)
+    county = models.CharField(max_length=100, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    profile_image = models.ImageField(upload_to='profile_images/', default='profile_images/profile.png')
+    website = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return self.full_names    
+
+
+class Activity(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # User performing the action
+    action = models.CharField(max_length=255)  # The action performed
+    timestamp = models.DateTimeField(default=now)  # Time of the activity
+    ip_address = models.GenericIPAddressField(null=True, blank=True)  # Optional: Track user's IP address
+
+    def __str__(self):
+        return f"{self.user} - {self.action} at {self.timestamp}"
+    
+
+
+class NewsUpdate(models.Model):
+    CATEGORY_CHOICES = [
+        ('KEMRI', 'KEMRI'),
+        ('Health Staff', 'Health Staff'),
+    ]
+
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    image = models.ImageField(upload_to='news_updates/', blank=True, null=True)
+    published_date = models.DateTimeField(default=now)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE,  blank=True, null=True)  # Link to User
+
+    def __str__(self):
+        return self.title
+    
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
+    content = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    # Fields for media uploads
+    photo = models.ImageField(upload_to='photos/', blank=True, null=True)
+    pdf = models.FileField(upload_to='pdfs/', blank=True, null=True)
+
+    def __str__(self):
+        return f'Message from {self.sender.username} to {self.receiver.username}'

@@ -8,6 +8,22 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.db.models import Q
+#emails
+from django.contrib.auth import get_user_model, authenticate, login
+from django.core.mail import EmailMultiAlternatives
+from django.utils.http import urlsafe_base64_encode
+from django.utils.html import strip_tags
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.views import View
+from django.conf import settings
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str  # use force_str instead of force_text
+Account = get_user_model()
 
 def register(request):
     if request.method == "POST":
@@ -38,7 +54,7 @@ def register(request):
     return render(request, 'auth/register.html', {'form': form})
 
 
-def student_login(request):
+def custom_login(request):
     if request.method == "POST":
         admission_number = request.POST['admission_number']
         password = request.POST['password']
@@ -49,20 +65,111 @@ def student_login(request):
         if user is not None:
             login(request, user)
             next_url = request.GET.get('next') or request.POST.get('next')  # Get intended URL
-            return redirect(next_url if next_url else 'dashboard')  # Redirect accordingly
+
+            # Redirect based on user role
+            if user.is_staff:  # If user is staff (admin)
+                return redirect(next_url if next_url else 'admin_dashboard')
+            else:  # If normal student
+                return redirect(next_url if next_url else 'student_dashboard')
+
         else:
             messages.error(request, "Invalid admission number or password.")
 
     return render(request, 'auth/login.html')
 
 
-def student_logout(request):
+def custom_logout(request):
     logout(request)
+    messages.error(request, 'Loged out successfully !')
     return redirect('login')  # Redirect to login page after logout
 
 
+
+
+# View to display the help and support page
 @login_required
-def dashboard(request):
+def help_and_support(request):
+    return render(request, 'help/help_and_support.html')
+
+
+# View to display the system settings page
+@login_required
+def system_settings(request):
+    return render(request, 'help/system_settings.html')
+
+
+#forgot password view 
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if Account.objects.filter(email=email).exists():
+            user = Account.objects.get(email=email)
+
+            # Generate reset password token and send email
+            current_site = get_current_site(request)
+            mail_subject = 'Reset Your Password'
+            context = {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+                'protocol': 'https' if request.is_secure() else 'http'
+            }
+            
+            # Render both HTML and plain text versions of the email
+            html_message = render_to_string('auth/reset_password_email.html', context)
+            plain_message = strip_tags(html_message)
+            
+            to_email = email
+            
+            # Use EmailMultiAlternatives for sending both HTML and plain text
+            email = EmailMultiAlternatives(
+                mail_subject,
+                plain_message,
+                'noreply@yourdomain.com',
+                [to_email]
+            )
+            email.attach_alternative(html_message, "text/html")
+            email.send()
+
+            messages.success(request, 'Password reset email has been sent to your email address.')
+            return redirect('login')
+        else:
+            messages.error(request, 'Account does not exist!')
+            return redirect('forgot_password')
+    return render(request, 'auth/forgot_password.html')
+
+
+
+def reset_password(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))  # Replace force_text with force_str
+        user = Account.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, Account.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+            if password == confirm_password:
+                user.set_password(password)
+                user.save()
+                messages.success(request, 'Password reset successful. You can now login with your new password.')
+                return redirect('login')
+            else:
+                messages.error(request, 'Passwords do not match.')
+                return redirect('reset_password', uidb64=uidb64, token=token)
+        return render(request, 'auth/reset_password.html')
+    else:
+        messages.error(request, 'Invalid reset link. Please try again.')
+        return redirect('login')
+    
+
+
+@login_required
+def student_dashboard(request):
     # Get the logged-in student's details using the admission number
     student = Student.objects.get(admission_number=request.user.username)
 
