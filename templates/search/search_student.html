@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Search Student</h2>
+    <form method="GET">
+        {{ form.as_p }}
+        <button type="submit">Search</button>
+    </form>
+
+    {% if students is not None %}
+        <h3>Search Results:</h3>
+        {% if students %}
+            {% for student in students %}
+                <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px;">
+                    <h3>{{ student.name }} ({{ student.admission_number }})</h3>
+                    <p><strong>Class:</strong> {{ student.current_class }}</p>
+                    <p><strong>Date of Birth:</strong> {{ student.date_of_birth }}</p>
+                    <p><strong>Gender:</strong> {{ student.get_gender_display }}</p>
+                    <p><strong>Admission Date:</strong> {{ student.admission_date }}</p>
+                    <p><strong>Address:</strong> {{ student.address }}</p>
+
+                    <h4>Parent/Guardian Information</h4>
+                    <p><strong>Father's Name:</strong> {{ student.father_name }}</p>
+                    <p><strong>Father's Phone:</strong> {{ student.father_phone }}</p>
+                    <p><strong>Father's Occupation:</strong> {{ student.father_occupation }}</p>
+                    
+                    <p><strong>Mother's Name:</strong> {{ student.mother_name }}</p>
+                    <p><strong>Mother's Phone:</strong> {{ student.mother_phone }}</p>
+                    <p><strong>Mother's Occupation:</strong> {{ student.mother_occupation }}</p>
+
+                    <p><strong>Guardian's Name:</strong> {{ student.guardian_name }}</p>
+                    <p><strong>Guardian's Phone:</strong> {{ student.guardian_phone }}</p>
+                    <p><strong>Guardian's Relationship:</strong> {{ student.guardian_relationship }}</p>
+
+                    <h4>Emergency Contact</h4>
+                    <p><strong>Name:</strong> {{ student.emergency_contact_name }}</p>
+                    <p><strong>Phone:</strong> {{ student.emergency_contact_phone }}</p>
+                    <p><strong>Relationship:</strong> {{ student.emergency_contact_relationship }}</p>
+
+                    <h4>Medical Information</h4>
+                    <p><strong>Blood Group:</strong> {{ student.blood_group }}</p>
+                    <p><strong>Medical Conditions:</strong> {{ student.medical_conditions }}</p>
+
+                    <h4>Additional Information</h4>
+                    <p><strong>Previous School:</strong> {{ student.previous_school }}</p>
+                    <p><strong>Remarks:</strong> {{ student.remarks }}</p>
+
+                    <p><strong>Profile Created:</strong> {{ student.created_at }}</p>
+                    <p><strong>Last Updated:</strong> {{ student.updated_at }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No students found.</p>
+        {% endif %}
+    {% endif %}
+{% endblock %}

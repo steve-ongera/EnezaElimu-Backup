@@ -6,6 +6,8 @@ from .forms import *
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+from django.db.models import Q
 
 def register(request):
     if request.method == "POST":
@@ -65,11 +67,12 @@ def dashboard(request):
 
     return render(request, 'auth/dashboard.html', {'student': student})
 
-
+@login_required
 def general_student_list(request):
     students = Student.objects.all()
     return render(request, 'students/student_list.html', {'students': students})
 
+@login_required
 def student_marks(request, student_id, term_id):
     student = get_object_or_404(Student, id=student_id)
     term = get_object_or_404(Term, id=term_id)
@@ -82,6 +85,8 @@ def student_marks(request, student_id, term_id):
     }
     return render(request, 'marks/student_marks.html', context)
 
+
+@login_required
 def student_progress(request, student_id):
     student = get_object_or_404(Student, id=student_id)
     terms = Term.objects.all().order_by('-year', 'name')
@@ -170,8 +175,7 @@ def student_progress(request, student_id):
     return render(request, 'marks/student_progress.html', context)
 
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+#logged in user to see his marks
 
 @login_required
 def individual_student_progress(request):
@@ -265,13 +269,17 @@ def individual_student_progress(request):
     return render(request, 'marks/individual_student_progress.html', context)
 
 
-
-def class_list(request):
+@login_required
+#list all classes which pertifipated in examinations
+def class_lists(request):
     classes = Class_of_study.objects.all().order_by('name', 'stream')
     return render(request, 'school/class_list.html', {
         'classes': classes
     })
 
+
+@login_required
+#terms in the examination session 
 def term_list(request, class_id):
     class_of_study = get_object_or_404(Class_of_study, id=class_id)
     terms = Term.objects.filter(
@@ -282,6 +290,10 @@ def term_list(request, class_id):
         'terms': terms
     })
 
+
+
+@login_required
+#student list in certain term year and stream
 def student_list(request, class_id, term_id):
     class_of_study = get_object_or_404(Class_of_study, id=class_id)
     term = get_object_or_404(Term, id=term_id)
@@ -346,9 +358,8 @@ def student_list(request, class_id, term_id):
     })
 
 
-from django.shortcuts import render, get_object_or_404
-from .models import Class_of_study, Term, Subject, CAT
 
+@login_required
 def subject_analysis(request, class_id, term_id):
     class_of_study = get_object_or_404(Class_of_study, id=class_id)
     term = get_object_or_404(Term, id=term_id)
@@ -415,11 +426,15 @@ def edit_student_profile(request):
     return render(request, 'students/edit_profile.html', context)
 
 
+
+@login_required
 # List all classes
 def class_list(request):
     classes = Class_of_study.objects.all()
     return render(request, 'class/class_list.html', {'classes': classes})
 
+
+@login_required
 # Create a new class
 def class_create(request):
     if request.method == 'POST':
@@ -431,11 +446,15 @@ def class_create(request):
         form = ClassForm()
     return render(request, 'class/class_form.html', {'form': form})
 
+
+@login_required
 # View class details
 def class_detail(request, pk):
     class_instance = get_object_or_404(Class_of_study, pk=pk)
     return render(request, 'class/class_detail.html', {'class_instance': class_instance})
 
+
+@login_required
 # Update a class
 def class_update(request, pk):
     class_instance = get_object_or_404(Class_of_study, pk=pk)
@@ -448,6 +467,8 @@ def class_update(request, pk):
         form = ClassForm(instance=class_instance)
     return render(request, 'class/class_form.html', {'form': form})
 
+
+@login_required
 # Delete a class
 def class_delete(request, pk):
     class_instance = get_object_or_404(Class_of_study, pk=pk)
@@ -458,11 +479,16 @@ def class_delete(request, pk):
 
 
 
+
+
+@login_required
 # List all subjects
 def subject_list(request):
     subjects = Subject.objects.all()
     return render(request, 'subject/subject_list.html', {'subjects': subjects})
 
+
+@login_required
 # Create a new subject
 def subject_create(request):
     if request.method == 'POST':
@@ -474,11 +500,15 @@ def subject_create(request):
         form = SubjectForm()
     return render(request, 'subject/subject_form.html', {'form': form})
 
+
+@login_required
 # View subject details
 def subject_detail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     return render(request, 'subject/subject_detail.html', {'subject': subject})
 
+
+@login_required
 # Update an existing subject
 def subject_update(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
@@ -491,6 +521,8 @@ def subject_update(request, pk):
         form = SubjectForm(instance=subject)
     return render(request, 'subject/subject_form.html', {'form': form})
 
+
+@login_required
 # Delete a subject
 def subject_delete(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
@@ -500,12 +532,14 @@ def subject_delete(request, pk):
     return render(request, 'subject/subject_confirm_delete.html', {'subject': subject})
 
 
-
+@login_required
 # List all students
-def student_list(request):
+def students_list(request):
     students = Student.objects.all()
     return render(request, 'students/database_student_list.html', {'students': students})
 
+
+@login_required
 # Create a new student
 def student_create(request):
     if request.method == 'POST':
@@ -517,11 +551,15 @@ def student_create(request):
         form = StudentForm()
     return render(request, 'students/student_form.html', {'form': form})
 
+
+@login_required
 # View student details
 def student_detail(request, pk):
     student = get_object_or_404(Student, pk=pk)
     return render(request, 'students/student_detail.html', {'student': student})
 
+
+@login_required
 # Update an existing student
 def student_update(request, pk):
     student = get_object_or_404(Student, pk=pk)
@@ -534,6 +572,8 @@ def student_update(request, pk):
         form = StudentForm(instance=student)
     return render(request, 'students/student_form.html', {'form': form})
 
+
+@login_required
 # Delete a student
 def student_delete(request, pk):
     student = get_object_or_404(Student, pk=pk)
@@ -544,12 +584,14 @@ def student_delete(request, pk):
 
 
 
-
+@login_required
 # List all terms
-def term_list(request):
+def term_lists(request):
     terms = Term.objects.all()
     return render(request, 'terms/term_list.html', {'terms': terms})
 
+
+@login_required
 # Create a new term
 def term_create(request):
     if request.method == 'POST':
@@ -561,11 +603,15 @@ def term_create(request):
         form = TermForm()
     return render(request, 'terms/term_form.html', {'form': form})
 
+
+@login_required
 # View term details
 def term_detail(request, pk):
     term = get_object_or_404(Term, pk=pk)
     return render(request, 'terms/term_detail.html', {'term': term})
 
+
+@login_required
 # Update an existing term
 def term_update(request, pk):
     term = get_object_or_404(Term, pk=pk)
@@ -578,6 +624,8 @@ def term_update(request, pk):
         form = TermForm(instance=term)
     return render(request, 'terms/term_form.html', {'form': form})
 
+
+@login_required
 # Delete a term
 def term_delete(request, pk):
     term = get_object_or_404(Term, pk=pk)
@@ -589,12 +637,14 @@ def term_delete(request, pk):
 
 
 
-
+@login_required
 # List all CATs
 def cat_list(request):
     cats = CAT.objects.all()
     return render(request, 'cats/cat_list.html', {'cats': cats})
 
+
+@login_required
 # Create a new CAT record
 def cat_create(request):
     if request.method == 'POST':
@@ -606,11 +656,15 @@ def cat_create(request):
         form = CATForm()
     return render(request, 'cats/cat_form.html', {'form': form})
 
+
+@login_required
 # View a single CAT record's details
 def cat_detail(request, pk):
     cat = get_object_or_404(CAT, pk=pk)
     return render(request, 'cats/cat_detail.html', {'cat': cat})
 
+
+@login_required
 # Update an existing CAT record
 def cat_update(request, pk):
     cat = get_object_or_404(CAT, pk=pk)
@@ -623,6 +677,8 @@ def cat_update(request, pk):
         form = CATForm(instance=cat)
     return render(request, 'cats/cat_form.html', {'form': form})
 
+
+@login_required
 # Delete a CAT record
 def cat_delete(request, pk):
     cat = get_object_or_404(CAT, pk=pk)
@@ -632,10 +688,9 @@ def cat_delete(request, pk):
     return render(request, 'cats/cat_confirm_delete.html', {'cat': cat})
 
 
-from django.shortcuts import render
-from django.db.models import Count
-from .models import Term
 
+
+@login_required
 def student_population_graph(request):
     # Get data aggregated by year
     population_data = Term.objects.values('year').annotate(
@@ -654,12 +709,9 @@ def student_population_graph(request):
     
     return render(request, 'graph/population_graph.html', context)
 
-#view for students who sat for cat that year
-from django.shortcuts import render
-from django.db.models import Count
-from .models import Class_of_study, Student, Term
-from django.db.models import Q
 
+@login_required
+#view for students who sat for cat that year
 def class_distribution_view(request):
     # Get all available years from Term model
     available_years = Term.objects.values_list('year', flat=True).distinct().order_by('-year')
@@ -701,3 +753,20 @@ def class_distribution_view(request):
     }
     
     return render(request, 'graph/class_distribution.html', context)
+
+
+@login_required
+def search_student(request):
+    form = StudentSearchForm(request.GET or None)
+    students = None
+
+    if form.is_valid():
+        query = form.cleaned_data.get("query")
+        if query:
+            students = Student.objects.filter(
+                models.Q(name__icontains=query) | 
+                models.Q(admission_number__icontains=query) |
+                models.Q(current_class__name__icontains=query)
+            )
+
+    return render(request, "search/search_student.html", {"form": form, "students": students})

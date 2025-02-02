@@ -6,7 +6,7 @@ urlpatterns = [
     path('student/<int:student_id>/term/<int:term_id>/', views.student_marks, name='student_marks'),
     path('student/<int:student_id>/progress/', views.student_progress, name='student_progress'),
 
-    path('classes/', views.class_list, name='class_list'),
+    path('classes_lists/', views.class_lists, name='class_lists'),
     path('classes/<int:class_id>/terms/', views.term_list, name='term_list'),
     path('classes/<int:class_id>/terms/<int:term_id>/students/',  views.student_list, name='student_list'),
 
@@ -22,7 +22,7 @@ urlpatterns = [
     path('profile/edit/', views.edit_student_profile, name='edit_student_profile'),
 
     #classs list view
-    path('', views.class_list, name='class_list'),
+    path('class_lists/', views.class_list, name='class_list'),
     path('create/', views.class_create, name='class_create'),
     path('<int:pk>/', views.class_detail, name='class_detail'),
     path('<int:pk>/update/', views.class_update, name='class_update'),
@@ -36,14 +36,14 @@ urlpatterns = [
     path('subjects/<int:pk>/delete/', views.subject_delete, name='subject_delete'),
 
     #students
-    path('students/', views.student_list, name='student_list'),
+    path('list_of_students/', views.students_list, name='students_list'),
     path('students/create/', views.student_create, name='student_create'),
     path('students/<int:pk>/', views.student_detail, name='student_detail'),
     path('students/<int:pk>/update/', views.student_update, name='student_update'),
     path('students/<int:pk>/delete/', views.student_delete, name='student_delete'),
 
     #terms
-    path('terms/', views.term_list, name='term_list'),
+    path('terms/', views.term_lists, name='term_lists'),
     path('terms/create/', views.term_create, name='term_create'),
     path('terms/<int:pk>/', views.term_detail, name='term_detail'),
     path('terms/<int:pk>/update/', views.term_update, name='term_update'),
@@ -59,6 +59,8 @@ urlpatterns = [
     #graphs
     path('population-graph/', views.student_population_graph, name='population-graph'),
     path('class-distribution/', views.class_distribution_view, name='class-distribution'),
+    #search
+    path("search-student/", views.search_student, name="search_student"),
     
     
 ]

@@ -87,3 +87,5 @@ class CATForm(forms.ModelForm):
         model = CAT
         fields = ['student', 'subject', 'term', 'cat1', 'cat2', 'cat3']
 
+class StudentSearchForm(forms.Form):
+    query = forms.CharField(label="Search Student", max_length=100, required=False)
