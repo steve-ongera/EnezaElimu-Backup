@@ -10,7 +10,7 @@ urlpatterns = [
     path('classes/<int:class_id>/terms/', views.term_list, name='term_list'),
     path('classes/<int:class_id>/terms/<int:term_id>/students/',  views.student_list, name='student_list'),
 
-    
+
     # urls.py
     path('classes/<int:class_id>/terms/<int:term_id>/analysis/', views.subject_analysis, name='subject_analysis'),
     path('register/', views.register, name='register'),
@@ -55,6 +55,10 @@ urlpatterns = [
     path('cats/<int:pk>/', views.cat_detail, name='cat_detail'),
     path('cats/<int:pk>/update/', views.cat_update, name='cat_update'),
     path('cats/<int:pk>/delete/', views.cat_delete, name='cat_delete'),
+
+    #graphs
+    path('population-graph/', views.student_population_graph, name='population-graph'),
+    path('class-distribution/', views.class_distribution_view, name='class-distribution'),
     
     
 ]

@@ -630,3 +630,74 @@ def cat_delete(request, pk):
         cat.delete()
         return redirect('cat_list')
     return render(request, 'cats/cat_confirm_delete.html', {'cat': cat})
+
+
+from django.shortcuts import render
+from django.db.models import Count
+from .models import Term
+
+def student_population_graph(request):
+    # Get data aggregated by year
+    population_data = Term.objects.values('year').annotate(
+        student_count=Count('cat__student', distinct=True)
+    ).order_by('year')
+    
+    # Prepare data for the template
+    years = [data['year'] for data in population_data]
+    counts = [data['student_count'] for data in population_data]
+    
+    context = {
+        'years': years,  
+        'counts': counts,
+        'population_data': population_data,
+    }
+    
+    return render(request, 'graph/population_graph.html', context)
+
+#view for students who sat for cat that year
+from django.shortcuts import render
+from django.db.models import Count
+from .models import Class_of_study, Student, Term
+from django.db.models import Q
+
+def class_distribution_view(request):
+    # Get all available years from Term model
+    available_years = Term.objects.values_list('year', flat=True).distinct().order_by('-year')
+    
+    # Get the selected year (default to latest year if none selected)
+    selected_year = request.GET.get('year', available_years.first())
+    
+    # Get students who have CATs in the selected year
+    students_in_year = CAT.objects.filter(
+        term__year=selected_year
+    ).values_list('student', flat=True).distinct()
+    
+    # Get the count of students in each class and stream for the selected year
+    class_distribution = Class_of_study.objects.annotate(
+        student_count=Count(
+            'students',
+            filter=Q(students__id__in=students_in_year),
+            distinct=True
+        )
+    ).values('name', 'stream', 'student_count').order_by('name', 'stream')
+    
+    # Prepare data for the chart
+    classes = []
+    counts = []
+    labels = []
+    
+    for item in class_distribution:
+        classes.append(item['name'])
+        counts.append(item['student_count'])
+        labels.append(f"{item['name']} - {item['stream']}")
+    
+    context = {
+        'class_distribution': class_distribution,
+        'classes': classes,
+        'counts': counts,
+        'labels': labels,
+        'available_years': available_years,
+        'selected_year': int(selected_year) if selected_year else None,
+    }
+    
+    return render(request, 'graph/class_distribution.html', context)

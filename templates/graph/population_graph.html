@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mx-auto p-4">
+    <h2 class="text-2xl font-bold mb-4">Student Population Trends</h2>
+    
+    <div class="bg-white shadow rounded-lg p-4 mb-6">
+        <canvas id="populationChart"></canvas>
+    </div>
+    
+    <!-- Optional: Display data in table format -->
+    <div class="bg-white shadow rounded-lg p-4">
+        <h3 class="text-xl font-semibold mb-3">Population Data</h3>
+        <table class="min-w-full">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2 text-left">Year</th>
+                    <th class="px-4 py-2 text-left">Number of Students</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in population_data %}
+                <tr>
+                    <td class="border px-4 py-2">{{ data.year }}</td>
+                    <td class="border px-4 py-2">{{ data.student_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Include Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the canvas element
+    const ctx = document.getElementById('populationChart').getContext('2d');
+    
+    // Get data from Django template
+    const years = {{ years|safe }};
+    const counts = {{ counts|safe }};
+    
+    // Create the chart
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: years,
+            datasets: [{
+                label: 'Number of Students',
+                data: counts,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.1,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: 'white',
+                pointBorderColor: 'rgb(75, 192, 192)',
+                pointHoverBackgroundColor: 'rgb(75, 192, 192)',
+                pointHoverBorderColor: 'white'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Student Population Over Years',
+                    font: {
+                        size: 16
+                    },
+                    padding: 20
+                },
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: {
+                        size: 14
+                    },
+                    bodyFont: {
+                        size: 14
+                    },
+                    padding: 12
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Students',
+                        font: {
+                            size: 14
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Year',
+                        font: {
+                            size: 14
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Student Distribution by Class and Stream</h2>
+        
+        <!-- Year Filter -->
+        <div class="flex items-center space-x-4">
+            <label class="font-semibold">Select Year:</label>
+            <select id="yearFilter" class="form-select rounded-md border-gray-300 shadow-sm" 
+                    onchange="window.location.href='?year=' + this.value">
+                {% for year in available_years %}
+                    <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+                        {{ year }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <!-- Chart Container -->
+    <div class="bg-white shadow rounded-lg p-4 mb-6">
+        <canvas id="classDistributionChart" style="height: 400px;"></canvas>
+    </div>
+    
+    <!-- Table View -->
+    <div class="bg-white shadow rounded-lg p-4">
+        <h3 class="text-xl font-semibold mb-3">
+            Detailed Distribution Data for Year {{ selected_year }}
+        </h3>
+        <table class="min-w-full">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2 text-left">Class</th>
+                    <th class="px-4 py-2 text-left">Stream</th>
+                    <th class="px-4 py-2 text-left">Number of Students</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in class_distribution %}
+                <tr>
+                    <td class="border px-4 py-2">{{ data.name }}</td>
+                    <td class="border px-4 py-2">{{ data.stream }}</td>
+                    <td class="border px-4 py-2">{{ data.student_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('classDistributionChart').getContext('2d');
+    
+    // Get data from Django template
+    const labels = {{ labels|safe }};
+    const counts = {{ counts|safe }};
+    const selectedYear = {{ selected_year }};
+    
+    // Create color array based on number of classes
+    const colors = Array(labels.length).fill().map((_, i) => 
+        `hsl(${(i * 360 / labels.length) + 200}, 70%, 60%)`
+    );
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `Number of Students (${selectedYear})`,
+                data: counts,
+                backgroundColor: colors,
+                borderColor: colors.map(color => color.replace('0.2', '1')),
+                borderWidth: 1,
+                borderRadius: 5,
+                barThickness: 30,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Student Distribution by Class and Stream - ${selectedYear}`,
+                    font: {
+                        size: 16
+                    },
+                    padding: 20
+                },
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: {
+                        size: 14
+                    },
+                    bodyFont: {
+                        size: 14
+                    },
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            return `Students: ${context.parsed.y}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Students',
+                        font: {
+                            size: 14
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Class and Stream',
+                        font: {
+                            size: 14
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: 12
+                        },
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
