@@ -387,8 +387,7 @@ class Activity(models.Model):
 
 class NewsUpdate(models.Model):
     CATEGORY_CHOICES = [
-        ('KEMRI', 'KEMRI'),
-        ('Health Staff', 'Health Staff'),
+        ('Education', 'Education'),  # Add Education category
     ]
 
     title = models.CharField(max_length=255)

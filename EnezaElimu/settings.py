@@ -39,6 +39,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+MIDDLEWARE += [
+    'myapp.middleware.LogRequestMiddleware',
+]
+
 ROOT_URLCONF = 'EnezaElimu.urls'
 
 TEMPLATES = [

@@ -1614,6 +1614,11 @@ def admin_dashboard(request):
     teacher_count = Teacher.objects.count()
     staff_count = Staff.objects.count()
     nonstaff_count = NonStaff.objects.count()
+    recent_activities = Activity.objects.order_by('-timestamp')[:6]
+    news_updates = NewsUpdate.objects.all().order_by('-published_date')[:8]
+
+    students = Student.objects.all() # dispalying list of all doctor in html using for loop
+    teachers = Teacher.objects.all()[:6] # displaying 6 patient in the database
     
     # Prepare data for chart
     chart_data = [
@@ -1622,13 +1627,43 @@ def admin_dashboard(request):
         {'name': 'Staff', 'count': staff_count, 'color': '#dc2626'},
         {'name': 'Non-Staff', 'count': nonstaff_count, 'color': '#ca8a04'}
     ]
+    #donut graph for analysis of user type
+    # Prepare the data for the chart
+    personnel_data = [
+        {'name': 'Students', 'value': Student.objects.count()},
+        {'name': 'Teachers', 'value': Teacher.objects.count()},
+        {'name': 'Staff', 'value': Staff.objects.count()},
+        {'name': 'Non-Staff', 'value': NonStaff.objects.count()},
+        {'name': 'Interns', 'value': Intern.objects.count()},
+    ]
+
+    # Get student counts by admission year
+    yearly_students = Student.objects.filter(
+        admission_date__isnull=False
+    ).annotate(
+        year=ExtractYear('admission_date')
+    ).values('year').annotate(
+        count=Count('id')
+    ).order_by('year')
+
+    student_yearly_data = [
+        {'name': str(entry['year']), 'value': entry['count']}
+        for entry in yearly_students
+    ]
     
     context = {
+        'students':students,
+        'teachers': teachers,
+        'recent_activities':recent_activities,
+        'news_updates': news_updates,
         'student_count': student_count,
         'teacher_count': teacher_count,
         'staff_count': staff_count,
         'nonstaff_count': nonstaff_count,
         'chart_data': json.dumps(chart_data),
+
+        'data': json.dumps(personnel_data),
+        'student_yearly_data': json.dumps(student_yearly_data),
 
         'years': json.dumps(years),  # Years as integers (2020, 2021, etc.)
         'counts': json.dumps(counts),
@@ -1716,7 +1751,7 @@ def news_edit(request, pk):
         form = NewsUpdateForm(request.POST, request.FILES, instance=news)
         if form.is_valid():
             form.save()
-            return redirect('dashboard')  # Redirect to a suitable page after editing
+            return redirect('admin_dashboard')  # Redirect to a suitable page after editing
     else:
         form = NewsUpdateForm(instance=news)
 
