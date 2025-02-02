@@ -1,0 +1,92 @@
+<!-- templates/results/student_results_form.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-4">Student Results Portal</h2>
+        
+        <!-- Result Search Form -->
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label for="admission_number" class="block text-sm font-medium text-gray-700">Admission Number</label>
+                <input type="text" name="admission_number" id="admission_number" required
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            
+            <div>
+                <label for="year" class="block text-sm font-medium text-gray-700">Year</label>
+                <select name="year" id="year" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    {% for year in "2020"|rjust:"5" %}
+                        <option value="{{ forloop.counter|add:2019 }}">{{ forloop.counter|add:2019 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="term" class="block text-sm font-medium text-gray-700">Term</label>
+                <select name="term" id="term" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="Term 1">Term 1</option>
+                    <option value="Term 2">Term 2</option>
+                    <option value="Term 3">Term 3</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">
+                View Results
+            </button>
+        </form>
+        
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mt-4 p-4 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded-md">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Results Display -->
+        {% if show_results %}
+            <div class="mt-8">
+                <h3 class="text-xl font-bold mb-4">Results for {{ student.name }}</h3>
+                <p class="text-gray-600">Term: {{ term.name }} {{ term.year }}</p>
+                
+                <div class="mt-4 overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CAT 1</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CAT 2</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CAT 3</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Average</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for result in results %}
+                                <tr>
+                                    <td class="px-6 py-4">{{ result.subject.name }}</td>
+                                    <td class="px-6 py-4">{{ result.cat1 }}</td>
+                                    <td class="px-6 py-4">{{ result.cat2 }}</td>
+                                    <td class="px-6 py-4">{{ result.cat3 }}</td>
+                                    <td class="px-6 py-4">{{ result.end_term }}</td>
+                                    <td class="px-6 py-4">{{ result.letter_grade }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <div class="mt-4 p-4 bg-gray-50 rounded-md">
+                        <p class="font-bold">Overall Average: {{ overall_average }}%</p>
+                        <p class="font-bold">GPA: {{ gpa }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

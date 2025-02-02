@@ -1390,3 +1390,59 @@ def delete_intern(request, pk):
         return redirect('intern_list')
     return render(request, 'intern/delete_intern.html', {'intern': intern})
 
+
+
+# views.py
+from django.shortcuts import render
+from django.contrib import messages
+from .models import Student, CAT, Term
+from django.db.models import Avg
+
+def student_results(request):
+    if request.method == 'POST':
+        admission_number = request.POST.get('admission_number')
+        year = request.POST.get('year')
+        term_name = request.POST.get('term')
+        
+        try:
+            # Get the student
+            student = Student.objects.get(admission_number=admission_number)
+            
+            # Get the term
+            term = Term.objects.get(name=term_name, year=year)
+            
+            # Get all CAT results for this student in the specified term
+            results = CAT.objects.filter(
+                student=student,
+                term=term
+            ).select_related('subject')  # Optimize query by including subject data
+            
+            if not results.exists():
+                messages.error(request, "No results found for the specified term.")
+                return render(request, 'results/student_results_form.html')
+            
+            # Calculate overall average and total grade points
+            overall_average = results.aggregate(Avg('end_term'))['end_term__avg']
+            total_grade_points = sum(result.grade_points for result in results)
+            gpa = total_grade_points / len(results) if results else 0
+            
+            # Prepare context for template
+            context = {
+                'student': student,
+                'results': results,
+                'term': term,
+                'overall_average': round(overall_average, 2) if overall_average else 0,
+                'gpa': round(gpa, 2),
+                'show_results': True
+            }
+            
+            return render(request, 'results/student_results_form.html', context)
+            
+        except Student.DoesNotExist:
+            messages.error(request, "Student with this admission number does not exist.")
+        except Term.DoesNotExist:
+            messages.error(request, "Invalid term or year selected.")
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+    
+    return render(request, 'results/student_results_form.html')
