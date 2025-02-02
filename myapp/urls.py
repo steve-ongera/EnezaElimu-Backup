@@ -61,6 +61,10 @@ urlpatterns = [
     path('class-distribution/', views.class_distribution_view, name='class-distribution'),
     #search
     path("search-student/", views.search_student, name="search_student"),
+    #rankings
+    path('rankings/', views.student_rankings, name='student_rankings'),
+    path('stream-performance/', views.stream_performance, name='stream_performance'),
+    path('subject-performance/', views.subject_performance, name='subject_performance'),
     
     
 ]

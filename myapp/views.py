@@ -771,3 +771,440 @@ def search_student(request):
             )
 
     return render(request, "search/search_student.html", {"form": form, "students": students})
+
+
+    #rankings
+
+    # views.py
+# views.py
+from django.shortcuts import render
+from django.db.models import Avg, Count, F, Prefetch, Q
+from django.db.models.functions import Coalesce
+from django.core.cache import cache
+from django.conf import settings
+
+def student_rankings(request):
+    # Get filter parameters from request
+    selected_year = request.GET.get('year')
+    selected_term = request.GET.get('term')
+    
+    # Cache key construction
+    cache_key = f'rankings_{selected_year}_{selected_term}'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        return render(request, 'rankings/student_rankings.html', cached_data)
+    
+    # Efficiently get filter options using values_list with distinct
+    available_years = Term.objects.values_list('year', flat=True)\
+        .distinct().order_by('-year')
+    available_terms = Term.objects.values_list('name', flat=True).distinct()
+    
+    if not selected_year:
+        selected_year = available_years.first()
+    
+    selected_year = int(selected_year)
+    
+    # Optimize term query
+    terms_query = Term.objects.filter(year=selected_year)
+    if selected_term:
+        terms_query = terms_query.filter(name=selected_term)
+    
+    # Prefetch related CAT data
+    cat_prefetch = Prefetch(
+        'cats',
+        queryset=CAT.objects.select_related('subject')
+    )
+    
+    rankings = []
+    
+    for term in terms_query:
+        # Optimize student query with annotations and prefetch_related
+        student_rankings = (
+            Student.objects
+            .prefetch_related(cat_prefetch)
+            .filter(cats__term=term)
+            .annotate(
+                average_score=Coalesce(
+                    Avg('cats__end_term'),
+                    0.0
+                ),
+                subjects_count=Count('cats__subject', distinct=True),
+                total_grade_points=Coalesce(
+                    Avg('cats__grade_points'),
+                    0.0
+                )
+            )
+            .filter(subjects_count__gt=0)
+            .select_related('current_class')  # Add any other needed related fields
+            .order_by('-average_score')
+        ).distinct()
+        
+        # Process results in chunks to reduce memory usage
+        CHUNK_SIZE = 50
+        term_results = {
+            'term': term,
+            'students': []
+        }
+        
+        for rank, student in enumerate(student_rankings, 1):
+            # Get subject grades efficiently using prefetched data
+            subject_grades = [
+                cat for cat in student.cats.all()
+                if cat.term_id == term.id
+            ]
+            
+            student_data = {
+                'rank': rank,
+                'student': student,
+                'average_score': round(student.average_score, 2),
+                'grade_point_average': round(student.total_grade_points, 2),
+                'subjects': subject_grades,
+                'total_subjects': student.subjects_count,
+                'overall_grade': _calculate_overall_grade(student.total_grade_points)
+            }
+            
+            term_results['students'].append(student_data)
+            
+            # Process in chunks to free up memory
+            if len(term_results['students']) >= CHUNK_SIZE:
+                rankings.append(term_results)
+                term_results = {
+                    'term': term,
+                    'students': []
+                }
+        
+        if term_results['students']:
+            rankings.append(term_results)
+    
+    context = {
+        'rankings': rankings,
+        'available_years': available_years,
+        'available_terms': available_terms,
+        'selected_year': selected_year,
+        'selected_term': selected_term,
+    }
+    
+    # Cache the results
+    cache.set(cache_key, context, timeout=3600)  # Cache for 1 hour
+    
+    return render(request, 'rankings/student_rankings.html', context)
+
+def _calculate_overall_grade(gpa):
+    """Helper function to calculate overall grade"""
+    if gpa >= 3.7:
+        return 'A'
+    elif gpa >= 3.3:
+        return 'B+'
+    elif gpa >= 3.0:
+        return 'B'
+    elif gpa >= 2.7:
+        return 'B-'
+    elif gpa >= 2.3:
+        return 'C+'
+    elif gpa >= 2.0:
+        return 'C'
+    return 'F'
+
+
+
+
+# views.py
+from django.shortcuts import render
+from django.db.models import Avg, Count, F, Q
+from django.db.models.functions import Coalesce
+from django.core.cache import cache
+from collections import defaultdict
+
+def stream_performance(request):
+    # Get filter parameters
+    selected_year = request.GET.get('year')
+    selected_term = request.GET.get('term')
+    
+    # Cache key for performance
+    cache_key = f'stream_performance_{selected_year}_{selected_term}'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        return render(request, 'rankings/stream_performance.html', cached_data)
+    
+    # Get available filter options
+    available_years = Term.objects.values_list('year', flat=True)\
+        .distinct().order_by('-year')
+    available_terms = Term.objects.values_list('name', flat=True).distinct()
+    
+    if not selected_year:
+        selected_year = available_years.first()
+    
+    selected_year = int(selected_year)
+    
+    # Get terms based on filters
+    terms_query = Term.objects.filter(year=selected_year)
+    if selected_term:
+        terms_query = terms_query.filter(name=selected_term)
+    
+    # Get all subjects for the header
+    subjects = Subject.objects.all().order_by('name')
+    
+    stream_analytics = []
+    
+    for term in terms_query:
+        # Get all streams that have students with CATs in this term
+        streams = Class_of_study.objects.filter(
+            students__cats__term=term
+        ).distinct()
+        
+        term_data = {
+            'term': term,
+            'streams': []
+        }
+        
+        for stream in streams:
+            # Get subject-wise performance for this stream
+            subject_performance = []
+            total_points = 0
+            subject_count = 0
+            
+            for subject in subjects:
+                # Calculate average performance for this subject in this stream
+                subject_stats = CAT.objects.filter(
+                    student__current_class=stream,
+                    term=term,
+                    subject=subject
+                ).aggregate(
+                    avg_score=Coalesce(Avg('end_term'), 0.0),
+                    avg_points=Coalesce(Avg('grade_points'), 0.0),
+                    student_count=Count('student', distinct=True)
+                )
+                
+                if subject_stats['student_count'] > 0:
+                    grade = _get_letter_grade(subject_stats['avg_points'])
+                    subject_performance.append({
+                        'subject': subject,
+                        'average_score': round(subject_stats['avg_score'], 2),
+                        'grade_points': round(subject_stats['avg_points'], 2),
+                        'letter_grade': grade,
+                        'students': subject_stats['student_count']
+                    })
+                    total_points += subject_stats['avg_points']
+                    subject_count += 1
+            
+            # Calculate overall stream performance
+            if subject_count > 0:
+                stream_mean_points = total_points / subject_count
+                stream_mean_grade = _get_letter_grade(stream_mean_points)
+                
+                # Get total number of students in stream
+                student_count = Student.objects.filter(
+                    current_class=stream,
+                    cats__term=term
+                ).distinct().count()
+                
+                stream_data = {
+                    'stream': stream,
+                    'subjects': subject_performance,
+                    'mean_points': round(stream_mean_points, 2),
+                    'mean_grade': stream_mean_grade,
+                    'total_students': student_count
+                }
+                
+                term_data['streams'].append(stream_data)
+        
+        # Sort streams by mean points
+        term_data['streams'].sort(key=lambda x: x['mean_points'], reverse=True)
+        
+        # Add rankings
+        for rank, stream_data in enumerate(term_data['streams'], 1):
+            stream_data['rank'] = rank
+        
+        stream_analytics.append(term_data)
+    
+    context = {
+        'analytics': stream_analytics,
+        'subjects': subjects,
+        'available_years': available_years,
+        'available_terms': available_terms,
+        'selected_year': selected_year,
+        'selected_term': selected_term,
+    }
+    
+    # Cache the results
+    cache.set(cache_key, context, timeout=3600)  # Cache for 1 hour
+    
+    return render(request, 'rankings/stream_performance.html', context)
+
+def _get_letter_grade(points):
+    """Helper function to get letter grade from points"""
+    if points >= 3.7:
+        return 'A'
+    elif points >= 3.3:
+        return 'B+'
+    elif points >= 3.0:
+        return 'B'
+    elif points >= 2.7:
+        return 'B-'
+    elif points >= 2.3:
+        return 'C+'
+    elif points >= 2.0:
+        return 'C'
+    return 'F'
+
+
+# views.py
+from django.shortcuts import render
+from django.db.models import Avg, Count, F, Q
+from django.db.models.functions import Coalesce
+from django.core.cache import cache
+from collections import defaultdict
+
+def subject_performance(request):
+    # Get filter parameters
+    selected_year = request.GET.get('year')
+    selected_term = request.GET.get('term')
+    
+    # Cache key for performance
+    cache_key = f'subject_performance_{selected_year}_{selected_term}'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        return render(request, 'rankings/subject_performance.html', cached_data)
+    
+    # Get available filter options
+    available_years = Term.objects.values_list('year', flat=True)\
+        .distinct().order_by('-year')
+    available_terms = Term.objects.values_list('name', flat=True).distinct()
+    
+    if not selected_year:
+        selected_year = available_years.first()
+    
+    selected_year = int(selected_year)
+    
+    # Get terms based on filters
+    terms_query = Term.objects.filter(year=selected_year)
+    if selected_term:
+        terms_query = terms_query.filter(name=selected_term)
+    
+    # Get all streams for the analysis
+    streams = Class_of_study.objects.all().order_by('name', 'stream')
+    
+    subject_analytics = []
+    
+    for term in terms_query:
+        term_data = {
+            'term': term,
+            'subjects': []
+        }
+        
+        subjects = Subject.objects.all()
+        
+        for subject in subjects:
+            # Overall subject performance
+            overall_stats = CAT.objects.filter(
+                term=term,
+                subject=subject
+            ).aggregate(
+                avg_score=Coalesce(Avg('end_term'), 0.0),
+                avg_points=Coalesce(Avg('grade_points'), 0.0),
+                total_students=Count('student', distinct=True),
+                a_count=Count('pk', filter=Q(letter_grade='A')),
+                a_minus_count=Count('pk', filter=Q(letter_grade='A-')),
+                b_plus_count=Count('pk', filter=Q(letter_grade='B+')),
+                b_count=Count('pk', filter=Q(letter_grade='B')),
+                b_minus_count=Count('pk', filter=Q(letter_grade='B-')),
+                c_plus_count=Count('pk', filter=Q(letter_grade='C+')),
+                c_count=Count('pk', filter=Q(letter_grade='C')),
+                fail_count=Count('pk', filter=Q(letter_grade='F'))
+            )
+            
+            if overall_stats['total_students'] > 0:
+                # Get performance by stream
+                stream_performance = []
+                for stream in streams:
+                    stream_stats = CAT.objects.filter(
+                        term=term,
+                        subject=subject,
+                        student__current_class=stream
+                    ).aggregate(
+                        avg_score=Coalesce(Avg('end_term'), 0.0),
+                        avg_points=Coalesce(Avg('grade_points'), 0.0),
+                        student_count=Count('student', distinct=True)
+                    )
+                    
+                    if stream_stats['student_count'] > 0:
+                        stream_performance.append({
+                            'stream': stream,
+                            'average_score': round(stream_stats['avg_score'], 2),
+                            'grade_points': round(stream_stats['avg_points'], 2),
+                            'students': stream_stats['student_count'],
+                            'letter_grade': _get_letter_grade(stream_stats['avg_points'])
+                        })
+                
+                # Calculate quality metrics
+                total_quality_grades = (
+                    overall_stats['a_count'] + 
+                    overall_stats['a_minus_count'] + 
+                    overall_stats['b_plus_count']
+                )
+                quality_percentage = (total_quality_grades / overall_stats['total_students']) * 100 if overall_stats['total_students'] > 0 else 0
+                
+                subject_data = {
+                    'subject': subject,
+                    'average_score': round(overall_stats['avg_score'], 2),
+                    'grade_points': round(overall_stats['avg_points'], 2),
+                    'letter_grade': _get_letter_grade(overall_stats['avg_points']),
+                    'total_students': overall_stats['total_students'],
+                    'streams': stream_performance,
+                    'grade_distribution': {
+                        'A': overall_stats['a_count'],
+                        'A-': overall_stats['a_minus_count'],
+                        'B+': overall_stats['b_plus_count'],
+                        'B': overall_stats['b_count'],
+                        'B-': overall_stats['b_minus_count'],
+                        'C+': overall_stats['c_plus_count'],
+                        'C': overall_stats['c_count'],
+                        'F': overall_stats['fail_count']
+                    },
+                    'quality_percentage': round(quality_percentage, 2),
+                    'pass_rate': round(((overall_stats['total_students'] - overall_stats['fail_count']) / overall_stats['total_students']) * 100 if overall_stats['total_students'] > 0 else 0, 2)
+                }
+                
+                term_data['subjects'].append(subject_data)
+        
+        # Sort subjects by grade points
+        term_data['subjects'].sort(key=lambda x: (x['grade_points'], x['quality_percentage']), reverse=True)
+        
+        # Add rankings
+        for rank, subject_data in enumerate(term_data['subjects'], 1):
+            subject_data['rank'] = rank
+        
+        subject_analytics.append(term_data)
+    
+    context = {
+        'analytics': subject_analytics,
+        'streams': streams,
+        'available_years': available_years,
+        'available_terms': available_terms,
+        'selected_year': selected_year,
+        'selected_term': selected_term,
+    }
+    
+    # Cache the results
+    cache.set(cache_key, context, timeout=3600)  # Cache for 1 hour
+    
+    return render(request, 'rankings/subject_performance.html', context)
+
+def _get_letter_grade(points):
+    """Helper function to get letter grade from points"""
+    if points >= 3.7:
+        return 'A'
+    elif points >= 3.3:
+        return 'B+'
+    elif points >= 3.0:
+        return 'B'
+    elif points >= 2.7:
+        return 'B-'
+    elif points >= 2.3:
+        return 'C+'
+    elif points >= 2.0:
+        return 'C'
+    return 'F'

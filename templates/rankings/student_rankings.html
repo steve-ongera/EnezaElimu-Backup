@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Student Rankings</h1>
+    
+    <!-- Filter Form -->
+    <form method="get" class="mb-8 p-4 bg-gray-100 rounded">
+        <div class="flex gap-4">
+            <div>
+                <label for="year" class="block text-sm font-medium text-gray-700">Year:</label>
+                <select name="year" id="year" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    {% for year in available_years %}
+                        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+                            {{ year }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="term" class="block text-sm font-medium text-gray-700">Term:</label>
+                <select name="term" id="term" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="">All Terms</option>
+                    {% for term in available_terms %}
+                        <option value="{{ term }}" {% if term == selected_term %}selected{% endif %}>
+                            {{ term }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="self-end">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Filter
+                </button>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Rankings Display -->
+    {% for term_ranking in rankings %}
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">{{ term_ranking.term }}</h2>
+        
+        <div class="overflow-x-auto shadow">
+            <table class="min-w-full bg-white border border-gray-300 table-fixed">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <!-- Fixed columns -->
+                        <th class="sticky left-0 z-10 bg-gray-100 px-4 py-2 border min-w-[60px]">Rank</th>
+                        <th class="sticky left-[60px] z-10 bg-gray-100 px-4 py-2 border min-w-[120px]">Adm No.</th>
+                        <th class="sticky left-[180px] z-10 bg-gray-100 px-4 py-2 border min-w-[200px]">Name</th>
+                        <th class="px-4 py-2 border min-w-[100px]">Average</th>
+                        <th class="px-4 py-2 border min-w-[80px]">GPA</th>
+                        <th class="px-4 py-2 border min-w-[80px]">Grade</th>
+                        
+                        <!-- Dynamic subject columns -->
+                        {% with first_student=term_ranking.students.0 %}
+                            {% for cat in first_student.subjects %}
+                                <th class="px-4 py-2 border min-w-[120px] whitespace-nowrap">
+                                    {{ cat.subject.name }}
+                                    <div class="text-xs font-normal">Score (Grade)</div>
+                                </th>
+                            {% endfor %}
+                        {% endwith %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in term_ranking.students %}
+                    <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+                        <!-- Fixed columns -->
+                        <td class="sticky left-0 z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-4 py-2 border text-center">
+                            {{ student.rank }}
+                        </td>
+                        <td class="sticky left-[60px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-4 py-2 border">
+                            {{ student.student.admission_number }}
+                        </td>
+                        <td class="sticky left-[180px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-4 py-2 border">
+                            {{ student.student.name }}
+                        </td>
+                        <td class="px-4 py-2 border text-center">{{ student.average_score }}%</td>
+                        <td class="px-4 py-2 border text-center">{{ student.grade_point_average }}</td>
+                        <td class="px-4 py-2 border text-center">{{ student.overall_grade }}</td>
+                        
+                        <!-- Dynamic subject columns -->
+                        {% for cat in student.subjects %}
+                            <td class="px-4 py-2 border text-center whitespace-nowrap">
+                                {{ cat.end_term }}% ({{ cat.letter_grade }})
+                            </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-8">
+        <p class="text-gray-500">No rankings available for the selected filters.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .table-fixed {
+        table-layout: fixed;
+    }
+    
+    /* Custom scrollbar styles for better visibility */
+    .overflow-x-auto {
+        scrollbar-width: thin;
+        scrollbar-color: #CBD5E0 #EDF2F7;
+    }
+    
+    .overflow-x-auto::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .overflow-x-auto::-webkit-scrollbar-track {
+        background: #EDF2F7;
+    }
+    
+    .overflow-x-auto::-webkit-scrollbar-thumb {
+        background-color: #CBD5E0;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}

@@ -1,4 +1,9 @@
 from django.db import models
+import random
+import string
+from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 class Class_of_study(models.Model):
     name = models.CharField(max_length=50)  # Form 1, Form 2, etc.
@@ -154,3 +159,59 @@ class CAT(models.Model):
 
     def __str__(self):
         return f"{self.student.name} - {self.subject.name} - {self.term.name}"
+    
+
+
+class Teacher(models.Model):
+    id_number = models.CharField(max_length=20, unique=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=15, unique=True)
+    address = models.TextField(null=True, blank=True)
+    
+    # Assigned Class
+    assigned_class = models.ForeignKey(Class_of_study, on_delete=models.SET_NULL, null=True, blank=True, related_name="teachers")
+    
+    # Profile Picture
+    profile_image = models.ImageField(upload_to="teachers_profiles/", default="profile.png" ,  null=True, blank=True)
+
+    # Unique 6-character Teacher Code
+    teacher_code = models.CharField(max_length=6, unique=True, blank=True)
+    
+    # Additional Information
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], null=True, blank=True)
+    nationality = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Employment Details
+    employment_date = models.DateField(null=True, blank=True)
+    department = models.CharField(max_length=100, null=True, blank=True)
+    position = models.CharField(max_length=100, null=True, blank=True)  # e.g., Senior Teacher, HOD
+
+    # Emergency Contact
+    emergency_contact_name = models.CharField(max_length=100, null=True, blank=True)
+    emergency_contact_phone = models.CharField(max_length=15, null=True, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=50, null=True, blank=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['first_name', 'last_name']
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.teacher_code})"
+
+# Signal to generate a unique 6-character Teacher Code
+def generate_teacher_code():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+@receiver(pre_save, sender=Teacher)
+def generate_unique_teacher_code(sender, instance, **kwargs):
+    if not instance.teacher_code:
+        unique_code = generate_teacher_code()
+        while Teacher.objects.filter(teacher_code=unique_code).exists():
+            unique_code = generate_teacher_code()
+        instance.teacher_code = unique_code
