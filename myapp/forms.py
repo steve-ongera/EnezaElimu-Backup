@@ -96,7 +96,7 @@ class StudentForm(forms.ModelForm):
             'admission_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Admission Number'}),
             'current_class': forms.Select(attrs={'class': 'form-select'}),
             'gender': forms.Select(attrs={'class': 'form-select'}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Address'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Address','rows': '1',}),
             'father_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Father Name'}),
             'father_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Father Phone'}),
             'father_occupation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Father Occupation'}),
@@ -106,14 +106,14 @@ class StudentForm(forms.ModelForm):
             'guardian_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Guardian Name'}),
             'guardian_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Guardian Phone'}),
             'guardian_relationship': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Guardian Relationship'}),
-            'guardian_address': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Guardian Address'}),
+            'guardian_address': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Guardian Address','rows': '1'}),
             'emergency_contact_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Emergency Contact Name'}),
             'emergency_contact_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Emergency Contact Phone'}),
             'emergency_contact_relationship': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Emergency Contact Relationship'}),
             'blood_group': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Blood Group'}),
-            'medical_conditions': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Medical Conditions'}),
+            'medical_conditions': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Medical Conditions','rows': '1'}),
             'previous_school': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Previous School'}),
-            'remarks': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Remarks'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Remarks','rows': '1'}),
         }
 
 
