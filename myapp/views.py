@@ -685,7 +685,7 @@ def student_update(request, pk):
         form = StudentForm(request.POST, instance=student)
         if form.is_valid():
             form.save()
-            return redirect('student_list')
+            return redirect('students_list')
     else:
         form = StudentForm(instance=student)
     return render(request, 'students/student_form.html', {'form': form})
