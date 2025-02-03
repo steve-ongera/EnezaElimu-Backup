@@ -1,15 +1,24 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 
 {% block content %}
+
 <div class="container mx-auto px-4 py-6">
-    <h1 class="text-2xl font-bold mb-6">Subject Performance Analysis</h1>
+        <div class="pagetitle mb-6">
+            <h1 class="text-2xl font-bold">Subject Performance Analysis</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Subject Performance Analysis</li>
+                </ol>
+            </nav>
+        </div>
     
     <!-- Filter Form -->
-    <form method="get" class="mb-8 p-4 bg-gray-100 rounded">
-        <div class="flex gap-4">
-            <div>
-                <label for="year" class="block text-sm font-medium text-gray-700">Year:</label>
-                <select name="year" id="year" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+    <form method="get" class="mb-4 p-4 bg-light rounded shadow-sm">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="year" class="form-label">Year:</label>
+                <select name="year" id="year" class="form-select">
                     {% for year in available_years %}
                         <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
                             {{ year }}
@@ -17,9 +26,10 @@
                     {% endfor %}
                 </select>
             </div>
-            <div>
-                <label for="term" class="block text-sm font-medium text-gray-700">Term:</label>
-                <select name="term" id="term" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            
+            <div class="col-md-4 mb-3">
+                <label for="term" class="form-label">Term:</label>
+                <select name="term" id="term" class="form-select">
                     <option value="">All Terms</option>
                     {% for term in available_terms %}
                         <option value="{{ term }}" {% if term == selected_term %}selected{% endif %}>
@@ -28,8 +38,9 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="self-end">
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            
+            <div class="col-md-4 mb-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
                     Filter
                 </button>
             </div>
@@ -42,23 +53,21 @@
         <h2 class="text-xl font-semibold mb-4">{{ term_data.term }}</h2>
         
         <div class="overflow-x-auto shadow">
-            <table class="min-w-full bg-white border border-gray-300 table-fixed">
+            <table class="min-w-full bg-white border border-gray-300 table-fixed text-sm">
                 <thead>
                     <tr class="bg-gray-100">
-                        <!-- Fixed columns -->
-                        <th class="sticky left-0 z-10 bg-gray-100 px-4 py-2 border">Rank</th>
-                        <th class="sticky left-[60px] z-10 bg-gray-100 px-4 py-2 border">Subject</th>
-                        <th class="sticky left-[260px] z-10 bg-gray-100 px-4 py-2 border">Students</th>
-                        <th class="sticky left-[360px] z-10 bg-gray-100 px-4 py-2 border">Mean Score</th>
-                        <th class="sticky left-[460px] z-10 bg-gray-100 px-4 py-2 border">Points</th>
-                        <th class="sticky left-[560px] z-10 bg-gray-100 px-4 py-2 border">Grade</th>
-                        <th class="px-4 py-2 border">Quality %</th>
-                        <th class="px-4 py-2 border">Pass Rate</th>
-                        <th class="px-4 py-2 border">Grade Distribution</th>
+                        <th class="sticky left-0 z-10 bg-gray-100 px-2 py-1 border w-16">Rank</th>
+                        <th class="sticky left-[60px] z-10 bg-gray-100 px-2 py-1 border w-32">Subject</th>
+                        <th class="sticky left-[260px] z-10 bg-gray-100 px-2 py-1 border w-20">Students</th>
+                        <th class="sticky left-[360px] z-10 bg-gray-100 px-2 py-1 border w-24">Mean Score</th>
+                        <th class="sticky left-[460px] z-10 bg-gray-100 px-2 py-1 border w-20">Points</th>
+                        <th class="sticky left-[560px] z-10 bg-gray-100 px-2 py-1 border w-20">Grade</th>
+                        <th class="px-2 py-1 border w-24">Quality %</th>
+                        <th class="px-2 py-1 border w-24">Pass Rate</th>
+                        <th class="px-2 py-1 border w-32">Grade Distribution</th>
                         
-                        <!-- Stream columns -->
                         {% for stream in streams %}
-                            <th class="px-4 py-2 border min-w-[150px] whitespace-nowrap">
+                            <th class="px-2 py-1 border w-32 whitespace-nowrap">
                                 {{ stream.name }} {{ stream.stream }}
                                 <div class="text-xs font-normal">Score (Grade)</div>
                             </th>
@@ -68,48 +77,39 @@
                 <tbody>
                     {% for subject_data in term_data.subjects %}
                     <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
-                        <!-- Fixed columns -->
-                        <td class="sticky left-0 z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-4 py-2 border text-center">
+                        <td class="sticky left-0 z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-2 py-1 border text-center whitespace-nowrap">
                             {{ subject_data.rank }}
                         </td>
-                        <td class="sticky left-[60px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-4 py-2 border font-medium">
+                        <td class="sticky left-[60px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-2 py-1 border font-medium whitespace-nowrap">
                             {{ subject_data.subject.name }}
                         </td>
-                        <td class="sticky left-[260px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-4 py-2 border text-center">
+                        <td class="sticky left-[260px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-2 py-1 border text-center whitespace-nowrap">
                             {{ subject_data.total_students }}
                         </td>
-                        <td class="sticky left-[360px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-4 py-2 border text-center">
+                        <td class="sticky left-[360px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-2 py-1 border text-center whitespace-nowrap">
                             {{ subject_data.average_score }}%
                         </td>
-                        <td class="sticky left-[460px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-4 py-2 border text-center">
+                        <td class="sticky left-[460px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-2 py-1 border text-center whitespace-nowrap">
                             {{ subject_data.grade_points }}
                         </td>
-                        <td class="sticky left-[560px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-4 py-2 border text-center">
+                        <td class="sticky left-[560px] z-10 {% cycle 'bg-white' 'bg-gray-50' %} px-2 py-1 border text-center whitespace-nowrap">
                             {{ subject_data.letter_grade }}
                         </td>
-                        <td class="px-4 py-2 border text-center">
+                        <td class="px-2 py-1 border text-center whitespace-nowrap">
                             {{ subject_data.quality_percentage }}%
                         </td>
-                        <td class="px-4 py-2 border text-center">
+                        <td class="px-2 py-1 border text-center whitespace-nowrap">
                             {{ subject_data.pass_rate }}%
                         </td>
-                        <td class="px-4 py-2 border text-sm">
-                            <div class="flex flex-wrap gap-2">
-                                {% for grade, count in subject_data.grade_distribution.items %}
-                                    <span class="px-2 py-1 rounded bg-gray-100">
-                                        {{ grade }}: {{ count }}
-                                    </span>
-                                {% endfor %}
-                            </div>
+                        <td class="px-2 py-1 border text-sm whitespace-nowrap">
+                            {{ subject_data.grade_distribution|join:", " }}
                         </td>
                         
-                        <!-- Stream performance -->
                         {% for stream in streams %}
-                            <td class="px-4 py-2 border text-center">
+                            <td class="px-2 py-1 border text-center whitespace-nowrap">
                                 {% for stream_data in subject_data.streams %}
                                     {% if stream_data.stream.id == stream.id %}
                                         {{ stream_data.average_score }}% ({{ stream_data.letter_grade }})
-                                        <div class="text-xs text-gray-500">{{ stream_data.students }} students</div>
                                     {% endif %}
                                 {% endfor %}
                             </td>

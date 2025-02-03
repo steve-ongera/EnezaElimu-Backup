@@ -76,8 +76,10 @@ def custom_login(request):
 
             # Redirect based on user role
             if user.is_staff:  # If user is staff (admin)
+                messages.success(request, "you have loged in successfully.")
                 return redirect(next_url if next_url else 'admin_dashboard')
             else:  # If normal student
+                messages.success(request, "you have loged in successfully.")
                 return redirect(next_url if next_url else 'student_dashboard')
 
         else:
@@ -897,7 +899,7 @@ from django.db.models import Avg, Count, F, Prefetch, Q
 from django.db.models.functions import Coalesce
 from django.core.cache import cache
 from django.conf import settings
-
+@login_required
 def student_rankings(request):
     # Get filter parameters from request
     selected_year = request.GET.get('year')
@@ -1030,7 +1032,7 @@ from django.db.models import Avg, Count, F, Q
 from django.db.models.functions import Coalesce
 from django.core.cache import cache
 from collections import defaultdict
-
+@login_required
 def stream_performance(request):
     # Get filter parameters
     selected_year = request.GET.get('year')
@@ -1171,7 +1173,7 @@ from django.db.models import Avg, Count, F, Q
 from django.db.models.functions import Coalesce
 from django.core.cache import cache
 from collections import defaultdict
-
+@login_required
 def subject_performance(request):
     # Get filter parameters
     selected_year = request.GET.get('year')
@@ -1326,7 +1328,7 @@ def _get_letter_grade(points):
 
 
 
-
+@login_required
 # Create Teacher
 def teacher_create(request):
     if request.method == 'POST':
@@ -1339,11 +1341,15 @@ def teacher_create(request):
         form = TeacherForm()
     return render(request, 'teachers/teacher_form.html', {'form': form})
 
+
+@login_required
 # Teacher Detail View
 def teacher_detail(request, teacher_id):
     teacher = get_object_or_404(Teacher, id=teacher_id)
     return render(request, 'teachers/teacher_detail.html', {'teacher': teacher})
 
+
+@login_required
 # Edit Teacher
 def teacher_edit(request, teacher_id):
     teacher = get_object_or_404(Teacher, id=teacher_id)
@@ -1357,6 +1363,8 @@ def teacher_edit(request, teacher_id):
         form = TeacherEditForm(instance=teacher)
     return render(request, 'teachers/teacher_form.html', {'form': form})
 
+
+@login_required
 # Delete Teacher
 def teacher_delete(request, teacher_id):
     teacher = get_object_or_404(Teacher, id=teacher_id)
@@ -1366,6 +1374,8 @@ def teacher_delete(request, teacher_id):
         return redirect('teacher_list')
     return render(request, 'teachers/teacher_confirm_delete.html', {'teacher': teacher})
 
+
+@login_required
 # List of all Teachers
 def teacher_list(request):
     teachers = Teacher.objects.all()
@@ -1373,7 +1383,7 @@ def teacher_list(request):
 
 
 
-
+@login_required
 # Create View
 def create_staff(request):
     if request.method == 'POST':
@@ -1385,16 +1395,22 @@ def create_staff(request):
         form = StaffForm()
     return render(request, 'staff/create_staff.html', {'form': form})
 
+
+@login_required
 # List View (Read)
 def staff_list(request):
     staff_members = Staff.objects.all()
     return render(request, 'staff/staff_list.html', {'staff_members': staff_members})
 
+
+@login_required
 # Detail View
 def staff_detail(request, pk):
     staff_member = get_object_or_404(Staff, pk=pk)
     return render(request, 'staff/staff_detail.html', {'staff_member': staff_member})
 
+
+@login_required
 # Update View
 def update_staff(request, pk):
     staff_member = get_object_or_404(Staff, pk=pk)
@@ -1407,6 +1423,8 @@ def update_staff(request, pk):
         form = StaffForm(instance=staff_member)
     return render(request, 'staff/update_staff.html', {'form': form})
 
+
+@login_required
 # Delete View
 def delete_staff(request, pk):
     staff_member = get_object_or_404(Staff, pk=pk)
@@ -1418,7 +1436,7 @@ def delete_staff(request, pk):
 
 
 
-
+@login_required
 # Create View
 def create_nonstaff(request):
     if request.method == 'POST':
@@ -1430,16 +1448,22 @@ def create_nonstaff(request):
         form = NonStaffForm()
     return render(request, 'nonstaff/create_nonstaff.html', {'form': form})
 
+
+@login_required
 # List View (Read)
 def nonstaff_list(request):
     nonstaff_members = NonStaff.objects.all()
     return render(request, 'nonstaff/nonstaff_list.html', {'nonstaff_members': nonstaff_members})
 
+
+@login_required
 # Detail View
 def nonstaff_detail(request, pk):
     nonstaff_member = get_object_or_404(NonStaff, pk=pk)
     return render(request, 'nonstaff/nonstaff_detail.html', {'nonstaff_member': nonstaff_member})
 
+
+@login_required
 # Update View
 def update_nonstaff(request, pk):
     nonstaff_member = get_object_or_404(NonStaff, pk=pk)
@@ -1452,6 +1476,8 @@ def update_nonstaff(request, pk):
         form = NonStaffForm(instance=nonstaff_member)
     return render(request, 'nonstaff/update_nonstaff.html', {'form': form})
 
+
+@login_required
 # Delete View
 def delete_nonstaff(request, pk):
     nonstaff_member = get_object_or_404(NonStaff, pk=pk)
@@ -1463,7 +1489,7 @@ def delete_nonstaff(request, pk):
 
 
 
-
+@login_required
 # Create View
 def create_intern(request):
     if request.method == 'POST':
@@ -1475,16 +1501,21 @@ def create_intern(request):
         form = InternForm()
     return render(request, 'intern/create_intern.html', {'form': form})
 
+
+@login_required
 # List View (Read)
 def intern_list(request):
     interns = Intern.objects.all()
     return render(request, 'intern/intern_list.html', {'interns': interns})
 
+@login_required
 # Detail View
 def intern_detail(request, pk):
     intern = get_object_or_404(Intern, pk=pk)
     return render(request, 'intern/intern_detail.html', {'intern': intern})
 
+
+@login_required
 # Update View
 def update_intern(request, pk):
     intern = get_object_or_404(Intern, pk=pk)
@@ -1497,6 +1528,9 @@ def update_intern(request, pk):
         form = InternForm(instance=intern)
     return render(request, 'intern/update_intern.html', {'form': form})
 
+
+
+@login_required
 # Delete View
 def delete_intern(request, pk):
     intern = get_object_or_404(Intern, pk=pk)
@@ -1512,6 +1546,7 @@ from django.shortcuts import render
 from django.contrib import messages
 from .models import Student, CAT, Term
 from django.db.models import Avg
+@login_required
 
 def student_results(request):
     if request.method == 'POST':
@@ -1565,16 +1600,13 @@ def student_results(request):
 
 #admin dashboard
 # views.py
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import Student, Teacher, Staff, NonStaff
+
+
 from django.db.models import Count
 import json
-
-from django.shortcuts import render
 from django.db.models import Count
 from django.db.models.functions import ExtractYear
-from .models import Student
+
 import json
 
 @login_required

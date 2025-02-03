@@ -15,7 +15,7 @@ urlpatterns = [
     # urls.py
     path('classes/<int:class_id>/terms/<int:term_id>/analysis/', views.subject_analysis, name='subject_analysis'),
     path('register/', views.register, name='register'),
-    path('login/', views.custom_login, name='login'),
+    path('', views.custom_login, name='login'),
     path('logout/', views.custom_logout, name='logout'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/<uidb64>/<token>/', views.reset_password, name='reset_password'),

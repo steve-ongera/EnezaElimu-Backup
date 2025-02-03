@@ -94,37 +94,24 @@
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
             <li class="dropdown-header">
                 You have {{ messages|length }} new messages
-                <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
+                <a href="{% url 'message_list' %}"><span class="badge rounded-pill bg-primary p-2 ms-2">View all</span></a>
             </li>
-            <li>
-                <hr class="dropdown-divider">
-            </li>
+            <li><hr class="dropdown-divider"></li>
         
             {% for message in messages %}
                 <li class="message-item">
-                    <a href="{% url 'create_chat' message.sender.username %}">
-                        {% if message.sender != request.user %}
+                    {% if message.sender and message.sender.username %}
+                        <a href="{% url 'create_chat' message.sender.username %}">
                             <img src="{{ message.sender.profile.profile_pic.url }}" alt="{{ message.sender.username }}" class="rounded-circle">
-                        {% else %}
-                            <img src="{{ message.receiver.profile.profile_pic.url }}" alt="{{ message.receiver.username }}" class="rounded-circle">
-                        {% endif %}
-                        
-                        <div>
-                            <h4>
-                                {% if message.sender != request.user %}
-                                    {{ message.sender.username }}
-                                {% else %}
-                                    {{ message.receiver.username }}
-                                {% endif %}
-                            </h4>
-                            <p>{{ message.content|truncatechars:50 }}</p>
-                            <p>{{ message.timestamp|timesince }} ago</p>
-                        </div>
-                    </a>
+                            <div>
+                                <h4>{{ message.sender.username }}</h4>
+                                <p>{{ message.content|truncatechars:50 }}</p>
+                                <p>{{ message.timestamp|timesince }} ago</p>
+                            </div>
+                        </a>
+                    {% endif %}
                 </li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
+                <li><hr class="dropdown-divider"></li>
             {% empty %}
                 <li class="text-center text-muted">No messages found</li>
             {% endfor %}
@@ -133,6 +120,7 @@
                 <a href="{% url 'message_list' %}">Show all messages</a>
             </li>
         </ul>
+        
         
 
         </li><!-- End Messages Nav -->

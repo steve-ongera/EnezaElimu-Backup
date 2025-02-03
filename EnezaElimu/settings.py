@@ -56,6 +56,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'myapp.context_processors.unread_messages',  # Add this line
             ],
         },
     },
@@ -118,7 +119,7 @@ MEDIA_URL='media/'
 MEDIA_ROOT=BASE_DIR / "media"
 
 
-LOGIN_URL = '/login/'  # Change this to match your actual login page URL
+LOGIN_URL = '/'  # Change this to match your actual login page URL
 
 
 LOGIN_REDIRECT_URL = '/'  # Set a default home page (optional)
