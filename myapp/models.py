@@ -46,6 +46,7 @@ class Student(models.Model):
     gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], null=True, blank=True)
     admission_date = models.DateField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
+    profile_image = models.ImageField(upload_to="students_profiles/", default="profile.png" ,  null=True, blank=True)
     
     # Parent/Guardian Information
     father_name = models.CharField(max_length=100, null=True, blank=True)

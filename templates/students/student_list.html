@@ -42,7 +42,7 @@
                                             {{ student.first_name }} {{ student.last_name }}
                                         </a>
                                     </td>
-                                    <td>{{ student.admission_number }}</td>
+                                    <td><a href="{% url 'student_detail' student.id %}">{{ student.admission_number }}</a></td>
                                     <td>{{ student.class_name }}</td>
                                     <td>{{ student.phone }}</td>
                                     <td>{{ student.parent_guardian }}</td>
