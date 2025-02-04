@@ -1,7 +1,18 @@
 {% extends 'base/base.html' %}
 
 {% block content %}
-  <h2>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Student</h2>
+
+<div class="pagetitle">
+    <h2>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Student Details</h2>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'students_list' %}">Students</a></li>
+            <li class="breadcrumb-item active">Students Details</li>
+        </ol>
+    </nav>
+</div><!-- End Page Title -->
+  
 
   <div class="card">
       <div class="card-body">
