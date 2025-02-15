@@ -192,7 +192,7 @@ class Teacher(models.Model):
     assigned_class = models.ForeignKey(Class_of_study, on_delete=models.SET_NULL, null=True, blank=True, related_name="teachers")
     
     # Profile Picture
-    profile_image = models.ImageField(upload_to="teachers_profiles/", default="profile.png" ,  null=True, blank=True)
+    profile_image = models.ImageField(upload_to="teachers_profiles/", default="teachers_profiles/profile.png",  null=True, blank=True)
 
     # Unique 6-character Teacher Code
     teacher_code = models.CharField(max_length=6, unique=True, blank=True)
