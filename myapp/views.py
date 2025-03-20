@@ -203,11 +203,19 @@ def student_marks(request, student_id, term_id):
     }
     return render(request, 'marks/student_marks.html', context)
 
-
 @login_required
 def student_progress(request, student_id):
     student = get_object_or_404(Student, id=student_id)
-    terms = Term.objects.all().order_by('-year', 'name')
+    
+    # Get all years from terms
+    years = Term.objects.values_list('year', flat=True).distinct().order_by('-year')
+    years_list = list(years)
+    
+    # Default to the most recent year if available
+    selected_year = request.GET.get('year', years_list[0] if years_list else None)
+    
+    # Get terms for the selected year
+    terms = Term.objects.filter(year=selected_year).order_by('name')
     subjects = Subject.objects.all()
     progress_data = []
 
@@ -289,9 +297,10 @@ def student_progress(request, student_id):
     context = {
         'student': student,
         'progress_data': progress_data,
+        'years': years_list,
+        'selected_year': selected_year,
     }
     return render(request, 'marks/student_progress.html', context)
-
 
 #logged in user to see his marks
 
