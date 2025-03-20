@@ -38,7 +38,7 @@
                 {% for student_id, student_data in students.items %}
                     <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
                         <td class="border p-2 text-center font-bold">{{ student_data.position_number }}</td>
-                        <td class="border p-2">{{ student_data.name }}</td>
+                        <td class="border p-2"><a  href="{% url 'student_progress' student_id %}?year={{ term.year }}">{{ student_data.name }}</a></td>
                         <td class="border p-2">{{ student_data.admission }}</td>
                         {% for subject in subjects %}
                             {% with cat_result=students_results|get_item:student_id|get_item:subject.id %}
