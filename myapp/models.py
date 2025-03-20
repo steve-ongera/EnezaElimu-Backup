@@ -204,6 +204,7 @@ class Teacher(models.Model):
     
     # Employment Details
     employment_date = models.DateField(null=True, blank=True)
+    #department = models.ForeignKey( Department, on_delete=models.SET_NULL , null=True, blank=True)
     department = models.CharField(max_length=100, null=True, blank=True)
     position = models.CharField(max_length=100, null=True, blank=True)  # e.g., Senior Teacher, HOD
 
