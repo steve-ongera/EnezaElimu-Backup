@@ -246,7 +246,8 @@ def student_progress(request, student_id):
                     'average': cat.end_term,
                     'grade': cat.letter_grade,
                     'grade_points': cat.grade_points,
-                    'position': cat.position
+                    'position': cat.position,
+                    'cat_id': cat.pk  # ADD THIS LINE!
                 }
                 total_score += cat.end_term
                 subject_count += 1
@@ -271,7 +272,8 @@ def student_progress(request, student_id):
                     'average': 'N/A',
                     'grade': 'N/A',
                     'grade_points': 'N/A',
-                    'position': 'N/A'
+                    'position': 'N/A',
+                    'cat_id': None  # So template won’t break
                 }
             
             term_data['subjects'].append(subject_data)

@@ -78,13 +78,22 @@
                             <th class="px-4 py-2 text-center">Average</th>
                             <th class="px-4 py-2 text-center">Grade</th>
                             <th class="px-4 py-2 text-center">Points</th>
-                            <th class="px-4 py-2 text-center">Position</th>
+                            <th class="px-4 py-2 text-center">Reamrks</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for subject in term_data.subjects %}
                         <tr class="border-t">
-                            <td class="px-4 py-2">{{ subject.subject.name }}</td>
+                            <td class="px-4 py-2">
+                                {% if subject.cat_id %}
+                                    <a href="{% url 'cat_detail' subject.cat_id %}" class="text-blue-500 hover:underline">
+                                        {{ subject.subject.name }}
+                                    </a>
+                                {% else %}
+                                    {{ subject.subject.name }}
+                                {% endif %}
+                            </td>
+                            
                             <td class="px-4 py-2 text-center">{{ subject.cat1|floatformat:2 }}</td>
                             <td class="px-4 py-2 text-center">{{ subject.cat2|floatformat:2 }}</td>
                             <td class="px-4 py-2 text-center">{{ subject.cat3|floatformat:2 }}</td>
