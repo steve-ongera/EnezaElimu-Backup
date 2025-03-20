@@ -218,6 +218,10 @@ def student_progress(request, student_id):
     terms = Term.objects.filter(year=selected_year).order_by('name')
     subjects = Subject.objects.all()
     progress_data = []
+    
+    # For year analysis
+    year_subjects_data = {}
+    term_count = 0
 
     for term in terms:
         term_data = {
@@ -246,6 +250,18 @@ def student_progress(request, student_id):
                 }
                 total_score += cat.end_term
                 subject_count += 1
+                
+                # Accumulate data for year analysis
+                if subject.id not in year_subjects_data:
+                    year_subjects_data[subject.id] = {
+                        'subject': subject,
+                        'total_score': cat.end_term,
+                        'term_count': 1,
+                    }
+                else:
+                    year_subjects_data[subject.id]['total_score'] += cat.end_term
+                    year_subjects_data[subject.id]['term_count'] += 1
+                
             except CAT.DoesNotExist:
                 subject_data = {
                     'subject': subject,
@@ -264,43 +280,79 @@ def student_progress(request, student_id):
         if subject_count > 0:
             term_data['term_average'] = round(total_score / subject_count, 2)
             # Determine overall grade based on term average
-            if term_data['term_average'] >= 80:
-                term_data['overall_grade'] = 'A'
-                term_data['position'] = 'First Class'
-            elif term_data['term_average'] >= 75:
-                term_data['overall_grade'] = 'A-'
-                term_data['position'] = 'First Class'
-            elif term_data['term_average'] >= 70:
-                term_data['overall_grade'] = 'B+'
-                term_data['position'] = 'First Class'
-            elif term_data['term_average'] >= 65:
-                term_data['overall_grade'] = 'B'
-                term_data['position'] = 'Second Class Upper'
-            elif term_data['term_average'] >= 60:
-                term_data['overall_grade'] = 'B-'
-                term_data['position'] = 'Second Class Upper'
-            elif term_data['term_average'] >= 55:
-                term_data['overall_grade'] = 'C+'
-                term_data['position'] = 'Second Class Lower'
-            elif term_data['term_average'] >= 50:
-                term_data['overall_grade'] = 'C'
-                term_data['position'] = 'Second Class Lower'
-            elif term_data['term_average'] >= 40:
-                term_data['overall_grade'] = 'D'
-                term_data['position'] = 'Pass'
-            else:
-                term_data['overall_grade'] = 'F'
-                term_data['position'] = 'Fail'
+            term_data['overall_grade'], term_data['position'] = get_grade_and_position(term_data['term_average'])
         
         progress_data.append(term_data)
+        term_count += 1
+    
+    # Process year analysis if all three terms are present
+    has_all_terms = term_count == 3
+    year_analysis = None
+    
+    if has_all_terms:
+        year_analysis = {
+            'subjects': [],
+            'year_average': 0,
+            'overall_grade': '',
+            'position': ''
+        }
+        
+        total_year_score = 0
+        subjects_with_data = 0
+        
+        for subject_id, data in year_subjects_data.items():
+            if data['term_count'] == 3:  # Only include subjects with data for all 3 terms
+                avg_score = round(data['total_score'] / 3, 2)
+                grade, position = get_grade_and_position(avg_score)
+                
+                subject_year_data = {
+                    'subject': data['subject'],
+                    'average': avg_score,
+                    'grade': grade,
+                    'position': position
+                }
+                
+                year_analysis['subjects'].append(subject_year_data)
+                total_year_score += avg_score
+                subjects_with_data += 1
+        
+        if subjects_with_data > 0:
+            year_analysis['year_average'] = round(total_year_score / subjects_with_data, 2)
+            year_analysis['overall_grade'], year_analysis['position'] = get_grade_and_position(year_analysis['year_average'])
+            
+            # Sort subjects by average score (descending)
+            year_analysis['subjects'].sort(key=lambda x: x['average'] if isinstance(x['average'], (int, float)) else 0, reverse=True)
 
     context = {
         'student': student,
         'progress_data': progress_data,
         'years': years_list,
         'selected_year': selected_year,
+        'year_analysis': year_analysis,
+        'has_all_terms': has_all_terms,
     }
     return render(request, 'marks/student_progress.html', context)
+
+# Helper function to get grade and position based on average score
+def get_grade_and_position(average):
+    if average >= 80:
+        return 'A', 'First Class'
+    elif average >= 75:
+        return 'A-', 'First Class'
+    elif average >= 70:
+        return 'B+', 'First Class'
+    elif average >= 65:
+        return 'B', 'Second Class Upper'
+    elif average >= 60:
+        return 'B-', 'Second Class Upper'
+    elif average >= 55:
+        return 'C+', 'Second Class Lower'
+    elif average >= 50:
+        return 'C', 'Second Class Lower'
+    elif average >= 40:
+        return 'D', 'Pass'
+    else:
+        return 'F', 'Fail'
 
 #logged in user to see his marks
 

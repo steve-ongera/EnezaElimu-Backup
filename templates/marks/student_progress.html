@@ -15,6 +15,45 @@
         </div>
     </div>
 
+    {% if has_all_terms and year_analysis %}
+    <!-- Year Analysis Section (Only shown when all three terms are available) -->
+    <div class="mb-8 bg-blue-50 rounded-lg shadow-md p-6 border-2 border-blue-200">
+        <h2 class="text-xl font-semibold mb-4 text-blue-800">{{ selected_year }} Academic Year Summary</h2>
+        
+        <!-- Year Summary -->
+        <div class="mb-4 p-4 bg-white rounded">
+            <p class="font-semibold text-lg">Year Average: {{ year_analysis.year_average }}</p>
+            <p class="text-lg">Overall Grade: <span class="font-bold">{{ year_analysis.overall_grade }}</span></p>
+            <p class="text-lg">Academic Standing: {{ year_analysis.position }}</p>
+        </div>
+
+        <!-- Subject Year Averages -->
+        <div class="overflow-x-auto">
+            <h3 class="text-lg font-medium mb-2">Subject Performance Across All Terms</h3>
+            <table class="min-w-full bg-white">
+                <thead>
+                    <tr class="bg-blue-100">
+                        <th class="px-4 py-2 text-left">Subject</th>
+                        <th class="px-4 py-2 text-center">Year Average</th>
+                        <th class="px-4 py-2 text-center">Grade</th>
+                        <th class="px-4 py-2 text-center">Standing</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subject in year_analysis.subjects %}
+                    <tr class="border-t {% if subject.grade == 'A' %}bg-green-50{% elif subject.grade == 'F' %}bg-red-50{% endif %}">
+                        <td class="px-4 py-2">{{ subject.subject.name }}</td>
+                        <td class="px-4 py-2 text-center font-medium">{{ subject.average }}</td>
+                        <td class="px-4 py-2 text-center font-bold">{{ subject.grade }}</td>
+                        <td class="px-4 py-2 text-center">{{ subject.position }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
     {% if progress_data %}
         {% for term_data in progress_data %}
         <div class="mb-8 bg-white rounded-lg shadow-md p-6">
@@ -39,7 +78,7 @@
                             <th class="px-4 py-2 text-center">Average</th>
                             <th class="px-4 py-2 text-center">Grade</th>
                             <th class="px-4 py-2 text-center">Points</th>
-                            <th class="px-4 py-2 text-center">Remarks</th>
+                            <th class="px-4 py-2 text-center">Position</th>
                         </tr>
                     </thead>
                     <tbody>
