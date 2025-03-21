@@ -2,31 +2,41 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import *
 
+
 class StudentRegistrationForm(forms.ModelForm):
     admission_number = forms.CharField(max_length=20, help_text="Enter your admission number")
     name = forms.CharField(max_length=100, help_text="Enter your full name")
+    email = forms.EmailField(help_text="Enter your email address")
     password = forms.CharField(widget=forms.PasswordInput, help_text="Enter a strong password")
+    password2 = forms.CharField(widget=forms.PasswordInput, help_text="Confirm password")  # Added confirm password
 
     class Meta:
         model = User
-        fields = ['admission_number', 'name', 'password']
+        fields = ['email', 'password']  # Only fields available in User
 
     def clean(self):
         cleaned_data = super().clean()
         admission_number = cleaned_data.get("admission_number")
         name = cleaned_data.get("name")
 
-        # Check if admission number exists
+        # Check admission number exists
         try:
             student = Student.objects.get(admission_number=admission_number)
         except Student.DoesNotExist:
             raise forms.ValidationError("Admission number does not exist.")
 
-        # Ensure the name matches the student’s actual name
-        if student.name.lower() != name.lower():
+        # Name match
+        if student.name.strip().lower() != name.strip().lower():
             raise forms.ValidationError("Name does not match our records.")
 
+        # Password match
+        password = cleaned_data.get("password")
+        password2 = cleaned_data.get("password2")
+        if password and password2 and password != password2:
+            raise forms.ValidationError("Passwords do not match.")
+
         return cleaned_data
+
 
 
 

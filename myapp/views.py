@@ -36,25 +36,45 @@ from datetime import timedelta
 def register(request):
     if request.method == "POST":
         form = StudentRegistrationForm(request.POST)
+        password2 = request.POST.get('password2')  # Confirm password from HTML
+
         if form.is_valid():
             admission_number = form.cleaned_data['admission_number']
             name = form.cleaned_data['name']
             password = form.cleaned_data['password']
 
-            # Get the student instance
-            student = Student.objects.get(admission_number=admission_number)
+            # 1. Check if User already exists
+            if User.objects.filter(username=admission_number).exists():
+                form.add_error('admission_number', 'User with this admission number already exists.')
+                return render(request, 'auth/register.html', {'form': form})
 
-            # Create the user with username as admission_number
-            user = User.objects.create_user(
-                username=admission_number,
-                password=password,
-                first_name=student.name.split()[0],  # First part of name
-                last_name=" ".join(student.name.split()[1:]),  # Rest of the name
-            )
-            
-            # Log the user in
-            login(request, user)
-            return redirect('dashboard')  # Redirect to a student dashboard
+            # 2. Check password confirmation
+            if password != password2:
+                form.add_error('password', 'Passwords do not match.')
+                return render(request, 'auth/register.html', {'form': form})
+
+            # 3. Get the student instance
+            try:
+                student = Student.objects.get(admission_number=admission_number)
+            except Student.DoesNotExist:
+                form.add_error('admission_number', 'Admission number not found.')
+                return render(request, 'auth/register.html', {'form': form})
+
+            # 4. Create user
+            try:
+                user = User.objects.create_user(
+                    username=admission_number,
+                    password=password,
+                    email=form.cleaned_data['email'],
+                    first_name=student.name.split()[0],  # First name
+                    last_name=" ".join(student.name.split()[1:]),  # Rest of the name
+                )
+                # 5. Log in
+                login(request, user)
+                return redirect('student_dashboard')
+            except Exception as e:
+                form.add_error(None, 'An unexpected error occurred during registration.')
+                return render(request, 'auth/register.html', {'form': form})
 
     else:
         form = StudentRegistrationForm()

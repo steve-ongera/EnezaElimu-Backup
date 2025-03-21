@@ -70,7 +70,15 @@
                   <form method="POST" class="row g-3 needs-validation" novalidate>
                     {% csrf_token %}
                     <div class="col-12">
-                      <label for="admission_number" class="form-label">Username</label>
+                      <label for="name" class="form-label">Full Names</label>
+                      <div class="input-group has-validation">
+                        <input type="text" id="name" name="name" class="form-control" required>
+                     
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <label for="admission_number" class="form-label">Username(Adm No)</label>
                       <div class="input-group has-validation">
                         <input type="text" id="admission_number" name="admission_number" class="form-control" required>
                         <div class="invalid-feedback">Please enter a username.</div>
@@ -79,9 +87,10 @@
 
                     <div class="col-12">
                       <label for="email" class="form-label">Email</label>
-                      <input type="text" id="name" name="name" class="form-control" required>
+                      <input type="email" id="email" name="email" class="form-control" required>
                       <div class="invalid-feedback">Please enter a valid email address!</div>
                     </div>
+                    
 
                     <div class="col-12">
                       <label for="password" class="form-label">Password</label>
