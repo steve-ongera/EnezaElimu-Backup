@@ -244,6 +244,23 @@ def student_dashboard(request):
     # Fetch recent CAT results for this student and term
     recent_results = CAT.objects.filter(student=student, term=latest_term)
 
+
+    # Calculate latest term average
+    latest_term_average = 0
+    latest_term_grade = "N/A"
+    latest_term_grade_point = 0.0
+    latest_term_position = "N/A"
+    
+    if recent_results.exists():
+        # Get the average of all end_term scores for latest term
+        avg_result = recent_results.aggregate(avg_score=Avg('end_term'))
+        latest_term_average = round(avg_result['avg_score'], 2) if avg_result['avg_score'] else 0
+        
+        # Determine grade information based on the latest term average
+        dummy_cat = CAT(end_term=latest_term_average)
+        latest_term_grade_point, latest_term_grade = dummy_cat.assign_grade_points()
+        latest_term_position = dummy_cat.determine_position()
+
     # Fee balance data (from previous discussion)
     terms = Term.objects.all().order_by('-year', 'name')
     fee_data = []
@@ -303,7 +320,13 @@ def student_dashboard(request):
         'subjects_count': subjects_count,
         'performance_data_json': performance_data_json,  # Added performance data
 
+        'latest_term_average': latest_term_average,  # Latest term average
+        'latest_term_grade': latest_term_grade,      # Latest term grade
+        'latest_term_grade_point': latest_term_grade_point,
+        'latest_term_position': latest_term_position,
     }
+
+    
     
     return render(request, 'auth/dashboard.html', context)
 
