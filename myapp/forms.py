@@ -2,6 +2,14 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import *
 
+class EnrollSubjectForm(forms.Form):
+    term = forms.ModelChoiceField(queryset=Term.objects.all(), label="Select Term")
+    subjects = forms.ModelMultipleChoiceField(
+        queryset=Subject.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label="Select Subjects"
+    )
+
 
 class StudentRegistrationForm(forms.ModelForm):
     admission_number = forms.CharField(max_length=20, help_text="Enter your admission number")

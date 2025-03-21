@@ -149,8 +149,20 @@
               <div class="col-xxl-4 col-md-6">
                 <div class="card info-card revenue-card">
               
+                  <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                      <li class="dropdown-header text-start">
+                        <h6>Filter</h6>
+                      </li>
+                      <li><a class="dropdown-item" href="#">Today</a></li>
+                      <li><a class="dropdown-item" href="#">This Month</a></li>
+                      <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                  </div>
+              
                   <div class="card-body">
-                    <h5 class="card-title">Fee Balance <span>| Ksh</span></h5>
+                    <h5 class="card-title">Fee Balance <span>| {{ selected_term.name }} {{ selected_term.year }}</span></h5>
               
                     <div class="d-flex align-items-center">
                       <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
@@ -158,162 +170,84 @@
                       </div>
                       <div class="ps-3">
                         <h6>Ksh {{ fee_balance }}</h6>
-                        <span class="text-muted small pt-2 ps-1">Outstanding Balance</span>
+                       
                       </div>
                     </div>
                   </div>
               
                 </div>
-              </div>
+              </div><!-- End Fee Balance Card -->
+              
               
 
 
           
 
-          <!-- population graph -->
+          <!-- Enrolled Subjects -->
           <div class="col-12">
             <div class="card">
 
-              <div class="filter">
-                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                  <li class="dropdown-header text-start">
-                    <h6>Filter</h6>
-                  </li>
-
-                  <li><a class="dropdown-item" href="#">Today</a></li>
-                  <li><a class="dropdown-item" href="#">This Month</a></li>
-                  <li><a class="dropdown-item" href="#">This Year</a></li>
-                </ul>
-              </div>
-
-              <div class="card-body">
-                <h5 class="card-title">Population Distribution<span id="currentYear"></span></h5>
-            
-                <!-- Yearly Admissions Chart -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h6 class="text-xl font-bold mb-4">Yearly Admissions</h6>
-                    <canvas id="yearlyAdmissionsChart"></canvas>
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Filter</h6>
+                        </li>
+                        <li><a class="dropdown-item" href="#">Today</a></li>
+                        <li><a class="dropdown-item" href="#">This Month</a></li>
+                        <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
                 </div>
 
-                <!-- End Line Chart -->            
-               </div>
-            </div>
-          </div><!-- End Reports -->
-            
+                <div class="card-body">
+                    <h5 class="card-title">Enrolled Subjects <span>| {{ selected_term.name }} {{ selected_term.year }}</span></h5>
 
-          <!-- Student Population Trends Reports -->
-          <div class="col-12">
-            <div class="card">
+                    <!-- Term Filter -->
+                    <form method="GET" class="mb-3">
+                        <label for="term" class="form-label">Filter by Term:</label>
+                        <select name="term" id="term" class="form-select" onchange="this.form.submit()">
+                            {% for term in terms %}
+                                <option value="{{ term.id }}" {% if term == selected_term %}selected{% endif %}>
+                                    {{ term.name }} {{ term.year }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
 
-              <div class="filter">
-                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                  <li class="dropdown-header text-start">
-                    <h6>Filter</h6>
-                  </li>
-
-                  <li><a class="dropdown-item" href="#">Today</a></li>
-                  <li><a class="dropdown-item" href="#">This Month</a></li>
-                  <li><a class="dropdown-item" href="#">This Year</a></li>
-                </ul>
-              </div>
-
-              <div class="card">
-                  <div class="card-body">
-                        <h5 class="card-title">Student Population Trends <span>| {{ current_year }}</span></h5>
-
-                       
-
-                        <!-- Cumulative Growth Chart -->
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <h6 class="text-xl font-bold mb-4">Cumulative Growth</h6>
-                            <canvas id="cumulativeGrowthChart"></canvas>
-                        </div>
-                
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-                        <script>
-                            // Parse data from Django
-                            const years = {{ years|safe }};
-                            const counts = {{ counts|safe }};
-                            const cumulativeCounts = {{ cumulative_counts|safe }};
-                            const growthRates = {{ growth_rates|safe }};
-                            
-                            // Yearly Admissions Chart
-                            new Chart(document.getElementById('yearlyAdmissionsChart'), {
-                                type: 'bar',
-                                data: {
-                                    labels: years,
-                                    datasets: [{
-                                        label: 'New Students',
-                                        data: counts,
-                                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                                        borderColor: 'rgb(59, 130, 246)',
-                                        borderWidth: 1
-                                    }, {
-                                        label: 'Growth Rate (%)',
-                                        data: growthRates,
-                                        type: 'line',
-                                        borderColor: 'rgb(220, 38, 38)',
-                                        yAxisID: 'y1'
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            title: {
-                                                display: true,
-                                                text: 'Number of Students'
-                                            }
-                                        },
-                                        y1: {
-                                            position: 'right',
-                                            beginAtZero: true,
-                                            title: {
-                                                display: true,
-                                                text: 'Growth Rate (%)'
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                            
-                            // Cumulative Growth Chart
-                            new Chart(document.getElementById('cumulativeGrowthChart'), {
-                                type: 'line',
-                                data: {
-                                    labels: years,
-                                    datasets: [{
-                                        label: 'Total Students',
-                                        data: cumulativeCounts,
-                                        borderColor: 'rgb(16, 185, 129)',
-                                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                        fill: true
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            title: {
-                                                display: true,
-                                                text: 'Total Students'
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                        </script>
+                    <!-- Enrolled Subjects Table -->
+                    {% if enrolled_subjects %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Date Enrolled</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in enrolled_subjects %}
+                                <tr>
+                                    <td>{{ enrollment.subject.name }}</td>
+                                    <td>{{ enrollment.date_enrolled|date:"d M Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
+                    {% else %}
+                        <p>No subjects enrolled for this term.</p>
+                    {% endif %}
+
                 </div>
-              </div>
             </div>
+          </div><!-- End Enrolled Subjects -->
+
+            
+
+          
              
 
-          <!-- Recent Sales -->
+          <!-- Recent results -->
           <div class="col-12">
             <div class="card recent-sales overflow-auto">
 
@@ -332,33 +266,40 @@
               
             
               <div class="card-body">
-                <h5 class="card-title">Students<span>| Today</span></h5>
+                
+                <h5 class="card-title">Recent Results - {{ latest_term.name }} {{ latest_term.year }}</h5>
 
+              {% if recent_results %}
                 <table class="table table-borderless datatable">
                   <thead>
                     <tr>
-                      <th scope="col">Names</th>
-                      <th scope="col">Registration</th>
-                      <th scope="col">Class</th>
-                      <th scope="col">Address</th>
-                      <th scope="col">DOB</th>
+                      <th>Subject</th>
+                    <th>CAT 1</th>
+                    <th>CAT 2</th>
+                    <th>CAT 3</th>
+                    <th>End Term Avg</th>
+                    <th>Grade</th>
+                    <th>Position</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {% for student in students %}
+                    {% for result in recent_results %}
                     <tr>
-                      <th scope="row"><a href="{% url 'student_detail' student.pk %}">{{ student.name }}</a></th>
-                      <td>{{ student.admission_number}}</td>
-                      <td><a href="#" class="text-primary">{{ student.current_class}}</a></td>
-                      <td>{{ student.address}}</td>
-                      <td>{{ student.date_of_birth}}</td>
+                        <td>{{ result.subject.name }}</td>
+                        <td>{{ result.cat1|floatformat:2 }}</td>
+                        <td>{{ result.cat2|floatformat:2 }}</td>
+                        <td>{{ result.cat3|floatformat:2 }}</td>
+                        <td>{{ result.end_term|floatformat:2 }}</td>
+                        <td>{{ result.letter_grade }}</td>
+                        <td>{{ result.position }}</td>
                     </tr>
-
-                   {% endfor  %}
+                    {% endfor %}
                             
                   </tbody>
                 </table>
-
+                {% else %}
+                <p>No recent results available.</p>
+            {% endif %}
               </div>
 
             </div>
@@ -385,31 +326,32 @@
               </div>
 
               <div class="card-body pb-0">
-                <h5 class="card-title">Teachers <span>| Today</span></h5>
+                <h5 class="card-title">Fee Balance <span>| Today</span></h5>
 
                 <table class="table table-borderless">
                   <thead>
                     <tr>
-                      <th scope="col">Profile</th>
-                        <th scope="col"> name</th>
-                        <th scope="col">phone</th>
-                        <th scope="col"> ID No</th>
-                        <th scope="col">Email</th>
-                        <th scope="col"> Address</th>
+                      <th>Term</th>
+                      <th>Required Fee</th>
+                      <th>Amount Paid</th>
+                      <th>Balance</th>
+
                 
                     </tr>
                   </thead>
                   <tbody>
-                    
-                    {% for teacher in teachers%}
+                    {% for fee in fee_data %}
                     <tr>
-                      <th scope="row"><a  href="{% url 'teacher_detail' teacher.id %}"><img style="width: 40px ; height: 40px" src="{% static 'assets/img/profile.png'%}" alt=""></a></th>
-                      <td>{{ teacher.first_name }} {{ patient.last_name }}</td>
-                      <td>{{ teacher.phone }}</td>
-                      <td>{{ teacher.id_number }}</td>
-                      <td>{{ teacher.email }}</td>
-                      <td>{{ teacher.address}}</td>
-                     
+                      <td>{{ fee.term.name }} {{ fee.term.year }}</td>
+                      <td>Ksh {{ fee.required_fee|floatformat:2 }}</td>
+                      <td>Ksh {{ fee.total_paid|floatformat:2 }}</td>
+                      <td>
+                        {% if fee.balance > 0 %}
+                          <span class="text-danger">Ksh {{ fee.balance|floatformat:2 }}</span>
+                        {% else %}
+                          <span class="text-success">Cleared</span>
+                        {% endif %}
+                      </td>
                     </tr>
                     {% endfor %}
                   </tbody>
@@ -526,62 +468,7 @@
         </div><!-- End most common diseases -->
 
 
-        <div class="card">
-          <div class="filter">
-            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-              <li class="dropdown-header text-start">
-                <h6>Filter</h6>
-              </li>
-              <li><a class="dropdown-item" href="#">Today</a></li>
-              <li><a class="dropdown-item" href="#">This Month</a></li>
-              <li><a class="dropdown-item" href="#">This Year</a></li>
-            </ul>
-          </div>
         
-          <div class="card-body pb-0">
-            <h5 class="card-title">Student Admission by Year <span>| All Time</span></h5>
-        
-            <div id="studentYearlyDonutChart" style="min-height: 400px;" class="echart"></div>
-        
-            <script>
-                document.addEventListener("DOMContentLoaded", () => {
-                    const yearlyData = JSON.parse('{{ student_yearly_data|safe }}');
-                    
-                    echarts.init(document.querySelector("#studentYearlyDonutChart")).setOption({
-                        tooltip: {
-                            trigger: 'item'
-                        },
-                        legend: {
-                            top: '5%',
-                            left: 'center'
-                        },
-                        series: [{
-                            name: 'Students by Year',
-                            type: 'pie',
-                            radius: ['40%', '70%'],
-                            avoidLabelOverlap: false,
-                            label: {
-                                show: false,
-                                position: 'center'
-                            },
-                            emphasis: {
-                                label: {
-                                    show: true,
-                                    fontSize: '18',
-                                    fontWeight: 'bold'
-                                }
-                            },
-                            labelLine: {
-                                show: false
-                            },
-                            data: yearlyData
-                        }]
-                    });
-                });
-            </script>
-        </div>
-      </div>
 
         <!-- News & Updates  -->
         <div class="card">

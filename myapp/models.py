@@ -416,3 +416,50 @@ class Message(models.Model):
 
     def __str__(self):
         return f'Message from {self.sender.username} to {self.receiver.username}'
+    
+
+
+#fee 
+class FeeStructure(models.Model):
+    term = models.OneToOneField(Term, on_delete=models.CASCADE, related_name='fee_structure')
+    amount_required = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"Fee for {self.term}: {self.amount_required}"
+
+class FeePayment(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='fee_payments')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='fee_payments')
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_date = models.DateField(auto_now_add=True)
+    receipt_number = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return f"{self.student.name} - {self.term} - Paid: {self.amount_paid}"
+
+    @property
+    def balance(self):
+        # Total paid by student in the term
+        total_paid = FeePayment.objects.filter(student=self.student, term=self.term).aggregate(total=models.Sum('amount_paid'))['total'] or 0
+        
+        # Required fee for the term
+        try:
+            required_fee = self.term.fee_structure.amount_required
+        except FeeStructure.DoesNotExist:
+            required_fee = 0  # If no fee structure is set
+
+        return required_fee - total_paid
+
+
+class EnrolledSubject(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrolled_subjects')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='enrolled_subjects')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='enrolled_students')
+
+    date_enrolled = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'term', 'subject')  # Prevent duplicates
+
+    def __str__(self):
+        return f"{self.student.name} enrolled in {self.subject.name} - {self.term.name} {self.term.year}"

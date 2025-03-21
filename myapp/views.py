@@ -198,12 +198,92 @@ def reset_password(request, uidb64, token):
     
 
 
+from django.db.models import Sum
+from .models import FeePayment, FeeStructure, Term
+
+from django.db.models import Max
+from .models import CAT, Term
+
 @login_required
 def student_dashboard(request):
-    # Get the logged-in student's details using the admission number
+    # Get the logged-in student's details
     student = Student.objects.get(admission_number=request.user.username)
 
-    return render(request, 'auth/dashboard.html', {'student': student})
+    
+
+    recent_activities = Activity.objects.order_by('-timestamp')[:6]
+    news_updates = NewsUpdate.objects.all().order_by('-published_date')[:8]
+
+    terms = Term.objects.all().order_by('-year', 'name')
+
+    # Get selected term from GET or default to the latest term where student enrolled
+    selected_term_id = request.GET.get('term')
+
+    if selected_term_id:
+        selected_term = Term.objects.get(id=selected_term_id)
+    else:
+        # Check latest term where the student enrolled
+        latest_enrollment = EnrolledSubject.objects.filter(student=student).order_by('-term__year', '-term__name').first()
+        selected_term = latest_enrollment.term if latest_enrollment else Term.objects.order_by('-year', '-name').first()
+     
+     # Get fee balance for selected term
+    try:
+        required_fee = selected_term.fee_structure.amount_required
+    except:
+        required_fee = 0
+
+    total_paid = FeePayment.objects.filter(student=student, term=selected_term).aggregate(total=Sum('amount_paid'))['total'] or 0
+    fee_balance = required_fee - total_paid
+
+    subjects_count = EnrolledSubject.objects.filter(student=student, term=selected_term).count()
+
+    # Get the latest term (highest year, latest term)
+    latest_term = Term.objects.order_by('-year', '-name').first()
+
+    # Fetch recent CAT results for this student and term
+    recent_results = CAT.objects.filter(student=student, term=latest_term)
+
+    # Fee balance data (from previous discussion)
+    terms = Term.objects.all().order_by('-year', 'name')
+    fee_data = []
+    
+    for term in terms:
+        try:
+            required_fee = term.fee_structure.amount_required
+        except:
+            required_fee = 0
+
+        total_paid = FeePayment.objects.filter(student=student, term=term).aggregate(total=Sum('amount_paid'))['total'] or 0
+        balance = required_fee - total_paid
+        
+        fee_data.append({
+            'term': term,
+            'required_fee': required_fee,
+            'total_paid': total_paid,
+            'balance': balance,
+        })
+
+     # Get enrolled subjects for selected term
+    enrolled_subjects = EnrolledSubject.objects.filter(student=student, term=selected_term)
+
+
+    context = {
+        'student': student,
+        'fee_data': fee_data,
+        'recent_results': recent_results,
+        'latest_term': latest_term,
+        'recent_activities':recent_activities,
+        'news_updates': news_updates,
+        'terms': terms,
+        'selected_term': selected_term,
+        'enrolled_subjects': enrolled_subjects,
+        'fee_balance': fee_balance,
+        'subjects_count': subjects_count,
+    }
+    
+    return render(request, 'auth/dashboard.html', context)
+
+
 
 @login_required
 def general_student_list(request):
@@ -2072,3 +2152,28 @@ def nav_bar_messages(request):
     return render(request, 'base/navbar.html', {
         'messages': messages,  # Pass the messages to the context
     })
+
+
+
+@login_required
+def enroll_subjects(request):
+    student = Student.objects.get(admission_number=request.user.username)
+    
+    if request.method == 'POST':
+        form = EnrollSubjectForm(request.POST)
+        if form.is_valid():
+            term = form.cleaned_data['term']
+            subjects = form.cleaned_data['subjects']
+
+            # Prevent duplicate enrollments
+            for subject in subjects:
+                EnrolledSubject.objects.get_or_create(
+                    student=student,
+                    term=term,
+                    subject=subject
+                )
+            return redirect('student_dashboard')  # Redirect to student dashboard after enrollment
+    else:
+        form = EnrollSubjectForm()
+    
+    return render(request, 'students/enroll_subjects.html', {'form': form})
