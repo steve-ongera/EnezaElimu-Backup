@@ -33,7 +33,11 @@
     <h1>Exam Timetable Details</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+        {% if request.user.is_staff %}
+        <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
+        {% else %}
+        <li class="breadcrumb-item"><a href="{% url 'student_dashboard' %}">Home</a></li>
+        {% endif %}
         <li class="breadcrumb-item"><a href="{% url 'timetable_list' %}">Timetables</a></li>
         <li class="breadcrumb-item active">Details</li>
       </ol>

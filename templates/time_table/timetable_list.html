@@ -5,7 +5,12 @@
     <h1>Exam Timetable List</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+        {% if request.user.is_staff %}
+        <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
+        {% else %}
+        <li class="breadcrumb-item"><a href="{% url 'student_dashboard' %}">Home</a></li>
+        {% endif %}
+       
         <li class="breadcrumb-item active">Exam Timetable</li>
       </ol>
     </nav>
@@ -17,7 +22,12 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">List of Exam Timetables</h5>
+                   
+                    {% if request.user.is_staff %}
                     <a href="{% url 'create_timetable' %}" class="btn btn-primary mb-3">Create New Timetable</a>
+                    {% else %}
+                    <a href="{% url 'student_dashboard' %}" class="btn btn-primary mb-3">Home</a>
+                    {% endif %}
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -45,11 +55,18 @@
                                           {% endif %}
                                         </td>
                                         <td>
+
+                                            {% if request.user.is_staff %}
                                             <!-- View Details Link -->
                                             <a href="{% url 'exam_timetable_detail' timetable.id %}" class="btn btn-sm btn-info">View Details</a>
                                             
                                             <a href="{% url 'update_timetable' timetable.id %}" class="btn btn-sm btn-warning">Edit</a>
                                             <a href="{% url 'delete_timetable' timetable.id %}" class="btn btn-sm btn-danger">Delete</a>
+                                            {% else %}
+                                           <!-- View Details Link -->
+                                           <a href="{% url 'exam_timetable_detail' timetable.id %}" class="btn btn-sm btn-info">View Details</a>
+                                            {% endif %}
+                                            
                                         </td>
                                     </tr>
                                 {% endfor %}

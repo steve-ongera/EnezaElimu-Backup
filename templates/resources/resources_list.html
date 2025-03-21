@@ -5,7 +5,11 @@
     <h1>Revision Resources</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+        {% if request.user.is_staff %}
+        <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
+        {% else %}
+        <li class="breadcrumb-item"><a href="{% url 'student_dashboard' %}">Home</a></li>
+        {% endif %}
         <li class="breadcrumb-item active">Resources</li>
       </ol>
     </nav>
@@ -14,7 +18,13 @@
   <section class="section">
     <div class="row">
       <div class="col-12 mb-3">
+        {% if request.user.is_staff %}
         <a href="{% url 'add_resource' %}" class="btn btn-success">Add New Resource</a>
+      
+       
+        
+        {% endif %}
+        
       </div>
 
       <!-- Search Bar -->
