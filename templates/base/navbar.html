@@ -4,7 +4,13 @@
 <header id="header" class="header fixed-top d-flex align-items-center">
 
     <div class="d-flex align-items-center justify-content-between">
-      <a href="{% url 'admin_dashboard'%}" class="logo d-flex align-items-center">
+      {% if request.user.is_staff %}
+        <a href="{% url 'admin_dashboard'%}" class="logo d-flex align-items-center">
+        {% else %}
+        <a href="{% url 'student_dashboard'%}" class="logo d-flex align-items-center">
+      {% endif %}
+
+      
         <img src="{% static 'assets/img/logo.png'%}" alt="">
         <span class="d-none d-lg-block">ELIMU</span>
       </a>
@@ -153,10 +159,18 @@
             </li>
 
             <li>
+              {% if request.user.is_staff %}
               <a class="dropdown-item d-flex align-items-center" href="{% url 'profile_detail'%}">
                 <i class="bi bi-person"></i>
                 <span>My Profile</span>
               </a>
+              {% else %}
+              <a class="dropdown-item d-flex align-items-center" href="{% url 'student_profile'%}">
+                <i class="bi bi-person"></i>
+                <span>My Profile</span>
+              </a>
+            {% endif %}
+              
             </li>
             <li>
               <hr class="dropdown-divider">
