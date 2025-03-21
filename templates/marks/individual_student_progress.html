@@ -83,15 +83,52 @@
     .year-content.active {
         display: block;
     }
+
+    .nav-pills .nav-link {
+        color: #0d6efd; /* Bootstrap Primary color */
+        border: 1px solid #0d6efd;
+        margin: 5px;
+        transition: all 0.3s ease-in-out;
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .nav-pills .nav-link:hover {
+        background-color: #e9f3ff;
+        color: #0d6efd;
+    }
+    
+    /* Optional: Make font smaller on small screens */
+    @media (max-width: 576px) {
+        .nav-pills .nav-link {
+            font-size: 0.44rem;      /* Smaller text */
+            padding: 6px 10px;       /* Smaller padding */
+            margin: 1px;             /* Reduce spacing */
+        }
+    }
+    
 </style>
 
 <div class="pagetitle">
-    <h1>Continuous Assessment Tests (CATs)</h1>
+    <h5>Continuous Assessment Exams</h5>
     <nav>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'student_dashboard' %}">Home</a></li>
-            <li class="breadcrumb-item">Assessments</li>
-            <li class="breadcrumb-item active"><a href="{% url 'cat_create' %}">Add New CAT</a></li>
+           
+            
+
+            {% if request.user.is_staff %}
+                   <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item">Assessments</li>
+                    <li class="breadcrumb-item active"><a href="{% url 'cat_create' %}">Add New CAT</a></li>
+                    
+                    {% else %}
+                    <li class="breadcrumb-item"><a href="{% url 'student_dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item">Assessments</li>
+            {% endif %}
+
         </ol>
     </nav>
 </div><!-- End Page Title -->
@@ -106,12 +143,17 @@
                         {% regroup progress_data by term.year as yearly_progress %}
                         
                         <!-- Year tabs navigation -->
-                        <div class="year-tabs">
-                            <div class="year-tab active" onclick="showAllYears()">All Years</div>
+                        <ul class="nav nav-pills flex-wrap justify-content-center gap-2 mb-3" id="yearTabs">
+                            <li class="nav-item">
+                                <a class="nav-link active fw-bold text-uppercase px-3 py-2" href="#" onclick="showAllYears()">All Years</a>
+                            </li>
                             {% for year in yearly_progress %}
-                                <div class="year-tab" onclick="showYear('{{ year.grouper }}')">{{ year.grouper }}</div>
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold text-uppercase px-3 py-2" href="#" onclick="showYear('{{ year.grouper }}')">{{ year.grouper }}</a>
+                            </li>
                             {% endfor %}
-                        </div>
+                        </ul>
+                        
                         
                         <!-- All years container -->
                         <div id="all-years" class="year-content active">
@@ -119,13 +161,13 @@
                                 <div class="year-container">
                                     <h3>Year {{ year.grouper }}</h3>
                                     {% for term_data in year.list %}
-                                        <h4>Term: {{ term_data.term.name }} ({{ term_data.term.year }})</h4>
+                                        <h4> {{ term_data.term.name }} {% comment %}({{ term_data.term.year }}) {%  endcomment %}</h4>
                                         
                                         <!-- Term Summary -->
                                         <div class="mb-4 p-4 bg-gray-50 rounded">
                                             <p class="font-semibold">Term Average: {{ term_data.term_average|default:"N/A" }}</p>
                                             <p>Overall Grade: {{ term_data.overall_grade|default:"N/A" }}</p>
-                                            <p>Position: {{ term_data.position|default:"N/A" }}</p>
+                                            <p>Remarks: {{ term_data.position|default:"N/A" }}</p>
                                         </div>
 
                                         <div class="table-responsive">
@@ -319,7 +361,7 @@
                                     </a>
                                     
                                     {% for term_data in year.list %}
-                                        <h4>Term: {{ term_data.term.name }} ({{ term_data.term.year }})</h4>
+                                        <h4>{{ term_data.term.name }} {% comment %}({{ term_data.term.year }}) {% endcomment %}</h4>
 
                                         <a href="{% url 'download_term_report' student.id term_data.term.id %}" 
                                             class="btn border border-primary text-primary fw-bold d-inline-flex align-items-center">
@@ -331,7 +373,7 @@
                                         <div class="mb-4 p-4 bg-gray-50 rounded">
                                             <p class="font-semibold">Term Average: {{ term_data.term_average|default:"N/A" }}</p>
                                             <p>Overall Grade: {{ term_data.overall_grade|default:"N/A" }}</p>
-                                            <p>Position: {{ term_data.position|default:"N/A" }}</p>
+                                            <p>Remarks: {{ term_data.position|default:"N/A" }}</p>
                                         </div>
 
                                         <div class="table-responsive">
@@ -560,6 +602,16 @@
                             var allYearsTab = document.querySelector('.year-tab');
                             allYearsTab.classList.add('active');
                         }
+
+
+                        const tabs = document.querySelectorAll('#yearTabs .nav-link');
+
+                        tabs.forEach(tab => {
+                            tab.addEventListener('click', function() {
+                                tabs.forEach(t => t.classList.remove('active'));
+                                this.classList.add('active');
+                            });
+                        });
                     </script>
 
                 </div>
