@@ -396,3 +396,18 @@ class MessageForm(forms.ModelForm):
             'content': forms.Textarea(attrs={'placeholder': 'Type your message'}),
         }
 
+
+class ResourceForm(forms.ModelForm):
+    class Meta:
+        model = Resource
+        fields = ['title', 'description', 'category', 'file', 'is_active']
+    
+    # Optional: Customize form validation or widgets here if needed
+    # Example: Add a widget for the description to use a textarea
+    description = forms.CharField(widget=forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter a brief description of the resource'}))
+
+class ExamTimeTableForm(forms.ModelForm):
+    class Meta:
+        model = ExamTimeTable
+        fields = '__all__'
+               

@@ -113,4 +113,17 @@ urlpatterns = [
     path('messages/<str:username>/', views.send_message, name='message_thread'),
     path('messages/', views.message_list, name='message_list'),
     path('messages/create/<str:username>/', views.create_chat, name='create_chat'),
+
+    #resources views
+    path('resources/add/', views.add_resource, name='add_resource'),
+    path('resources/', views.resources_list, name='resources_list'),
+    path('resources/<int:resource_id>/', views.resource_detail, name='resource_detail'),
+    path('resource-search/', views.resource_search, name='resource_search'),
+
+    #timetable
+    path('timetable/', views.timetable_list, name='timetable_list'),
+    path('timetable/create/', views.create_timetable, name='create_timetable'),
+    path('timetable/update/<int:pk>/', views.update_timetable, name='update_timetable'),
+    path('timetable/delete/<int:pk>/', views.delete_timetable, name='delete_timetable'),
+    path('exam-timetable/<int:pk>/', views.exam_timetable_detail, name='exam_timetable_detail'),
 ]

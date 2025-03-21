@@ -24,7 +24,8 @@ from django.conf import settings
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str  # use force_str instead of force_text
 Account = get_user_model()
-
+from django.db.models import Avg, Sum, Count, Q
+from django.http import HttpResponse, JsonResponse
 from django.http import HttpResponseForbidden
 
 from django.utils import timezone
@@ -2177,3 +2178,95 @@ def enroll_subjects(request):
         form = EnrollSubjectForm()
     
     return render(request, 'students/enroll_subjects.html', {'form': form})
+
+
+#resources views
+def add_resource(request):
+    if request.method == 'POST':
+        form = ResourceForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Resource added successfully!")
+            return redirect('resources_list')  # Redirect to the resource list page
+        else:
+            messages.error(request, "Error adding resource. Please try again.")
+    else:
+        form = ResourceForm()
+
+    return render(request, 'resources/add_resource.html', {'form': form})
+
+
+def resources_list(request):
+    resources = Resource.objects.filter(is_active=True).order_by('-created_at')
+    return render(request, 'resources/resources_list.html', {'resources': resources})
+
+def resource_detail(request, resource_id):
+    resource = Resource.objects.get(id=resource_id)
+    resource.increment_views()  # Increment views count each time a resource is accessed
+    return render(request, 'resources/resource_detail.html', {'resource': resource})
+
+
+def resource_search(request):
+    query = request.GET.get('query', '')
+    resources = Resource.objects.filter(title__icontains=query)
+
+    results = []
+
+    for resource in resources:
+        # Truncate description to 20 words (you can adjust this number)
+        truncated_description = strip_tags(resource.description)  # Remove any HTML tags
+        words = truncated_description.split()
+        if len(words) > 20:
+            truncated_description = ' '.join(words[:20]) + '...'  # Add three dots if the description is too long
+
+        results.append({
+            'title': resource.title,
+            'description': truncated_description,
+            'url': reverse('resource_detail', args=[resource.id]),
+        })
+
+    return JsonResponse({'resources': results})
+
+
+#time table views
+
+def timetable_list(request):
+    timetables = ExamTimeTable.objects.select_related('session').all()
+    return render(request, 'time_table/timetable_list.html', {'timetables': timetables})
+
+def create_timetable(request):
+    if request.method == 'POST':
+        form = ExamTimeTableForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Exam timetable created successfully.')
+            return redirect('timetable_list')
+    else:
+        form = ExamTimeTableForm()
+    return render(request, 'time_table/timetable_form.html', {'form': form})
+
+def update_timetable(request, pk):
+    timetable = get_object_or_404(ExamTimeTable, pk=pk)
+    if request.method == 'POST':
+        form = ExamTimeTableForm(request.POST, request.FILES, instance=timetable)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Exam timetable updated successfully.')
+            return redirect('timetable_list')
+    else:
+        form = ExamTimeTableForm(instance=timetable)
+    return render(request, 'time_table/timetable_form.html', {'form': form})
+
+def delete_timetable(request, pk):
+    timetable = get_object_or_404(ExamTimeTable, pk=pk)
+    timetable.delete()
+    messages.success(request, 'Exam timetable deleted successfully.')
+    return redirect('timetable_list')
+
+
+def exam_timetable_detail(request, pk):
+    # Get the ExamTimeTable object by its primary key (pk)
+    timetable = get_object_or_404(ExamTimeTable, pk=pk)
+    
+    # Return the rendered template with the timetable object
+    return render(request, 'time_table/exam_timetable_detail.html', {'timetable': timetable})
