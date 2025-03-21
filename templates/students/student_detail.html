@@ -64,6 +64,9 @@
                    <a href="{% url 'student_update' student.pk %}" class="btn btn-primary me-2">
                        <i class="bi bi-pencil"></i> Edit
                    </a>
+                   <a href="{% url 'student_progress' student.id %}" class="btn btn-primary me-2">
+                    <i class="bi bi-eye"></i> Academics
+                   </a>
                    <a href="{% url 'students_list' %}" class="btn btn-secondary">
                        <i class="bi bi-arrow-left"></i> Back to List
                    </a>
@@ -74,30 +77,3 @@
 </div>
 
 {% endblock %}
-
-{% comment %}
-<h2>{{ student.name }} ({{ student.admission_number }})</h2>
-<p>Date of Birth: {{ student.date_of_birth }}</p>
-<p>Current Class: {{ student.current_class }}</p>
-<p>Gender: {{ student.get_gender_display }}</p>
-<p>Admission Date: {{ student.admission_date }}</p>
-
-<h3>Parent/Guardian Information</h3>
-<p>Father: {{ student.father_name }} ({{ student.father_phone }}) - {{ student.father_occupation }}</p>
-<p>Mother: {{ student.mother_name }} ({{ student.mother_phone }}) - {{ student.mother_occupation }}</p>
-<p>Guardian: {{ student.guardian_name }} ({{ student.guardian_phone }}) - {{ student.guardian_relationship }}</p>
-
-<h3>Emergency Contact</h3>
-<p>{{ student.emergency_contact_name }} - {{ student.emergency_contact_phone }} ({{ student.emergency_contact_relationship }})</p>
-
-<h3>Other Information</h3>
-<p>Blood Group: {{ student.blood_group }}</p>
-<p>Medical Conditions: {{ student.medical_conditions }}</p>
-<p>Previous School: {{ student.previous_school }}</p>
-<p>Remarks: {{ student.remarks }}</p>
-
-<a href="{% url 'student_update' student.pk %}">Edit</a> |
-<a href="{% url 'student_delete' student.pk %}">Delete</a> |
-<a href="{% url 'students_list' %}">Back to List</a>
-{% endblock %}
-{% endcomment %}

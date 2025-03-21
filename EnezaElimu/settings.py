@@ -145,3 +145,8 @@ EMAIL_HOST_PASSWORD = 'wtzg mvcn ztoe qige'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# School details for PDF reports
+SCHOOL_NAME = "Kenya High"
+SCHOOL_LOGO_PATH = STATIC_URL + 'assets/img/logo.png' # Adjust path based on where your logo is
+PRINCIPAL_NAME = "Mwangi Macharia"

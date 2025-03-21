@@ -449,6 +449,88 @@ def individual_student_progress(request):
     }
     return render(request, 'marks/individual_student_progress.html', context)
 
+#download reports view 
+from myapp.utils import (
+    generate_term_report_pdf, 
+    generate_year_report_pdf,
+    get_term_data,
+    get_year_data
+)
+
+def generate_progress_data(student):
+    terms = Term.objects.all().order_by('-year', 'name')
+    subjects = Subject.objects.all()
+    progress_data = []
+
+    for term in terms:
+        term_data = {
+            'term': term,
+            'subjects': [],
+            'term_average': 0,
+            'overall_grade': '',
+            'position': ''
+        }
+        
+        total_score = 0
+        subject_count = 0
+        
+        for subject in subjects:
+            try:
+                cat = CAT.objects.get(student=student, term=term, subject=subject)
+                subject_data = {
+                    'subject': subject,
+                    'cat1': cat.cat1,
+                    'cat2': cat.cat2,
+                    'cat3': cat.cat3,
+                    'average': cat.end_term,
+                    'grade': cat.letter_grade,
+                    'grade_points': cat.grade_points,
+                    'position': cat.position
+                }
+                total_score += cat.end_term
+                subject_count += 1
+            except CAT.DoesNotExist:
+                subject_data = {
+                    'subject': subject,
+                    'cat1': 'N/A',
+                    'cat2': 'N/A',
+                    'cat3': 'N/A',
+                    'average': 'N/A',
+                    'grade': 'N/A',
+                    'grade_points': 'N/A',
+                    'position': 'N/A'
+                }
+            
+            term_data['subjects'].append(subject_data)
+        
+        if subject_count > 0:
+            term_data['term_average'] = round(total_score / subject_count, 2)
+            term_data['overall_grade'], term_data['position'] = get_grade_and_position(term_data['term_average'])
+        
+        progress_data.append(term_data)
+    
+    return progress_data
+
+
+@login_required
+def download_year_report(request, student_id, year):
+    student = get_object_or_404(Student, id=student_id)
+    # You may need to fetch or regenerate progress_data here
+    # Example assumes progress_data available in session or re-queried:
+    progress_data = generate_progress_data(student)  # You define this!
+    year_data = get_year_data(progress_data, year)
+    return generate_year_report_pdf(student, year, year_data)
+
+@login_required
+def download_term_report(request, student_id, term_id):
+    student = get_object_or_404(Student, id=student_id)
+    term = get_object_or_404(Term, id=term_id)
+    # Same, regenerate or fetch progress_data
+    progress_data = generate_progress_data(student)
+    term_data = get_term_data(progress_data, term.year, term.name)
+    return generate_term_report_pdf(student, term_data)
+
+
 
 @login_required
 #list all classes which pertifipated in examinations

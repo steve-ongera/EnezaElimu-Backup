@@ -1,6 +1,7 @@
 {% load grade_filters %}
+
 <style>
-    /* Existing styles remain the same */
+    /* Existing styles */
     table {
         width: 100%;
         border-collapse: collapse;
@@ -44,6 +45,41 @@
         border-radius: 6px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    
+    /* New styles for year tabs */
+    .year-tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #dee2e6;
+        overflow-x: auto;
+    }
+    
+    .year-tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        margin-right: 5px;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+    }
+    
+    .year-tab.active {
+        background-color: white;
+        border-bottom-color: white;
+        font-weight: bold;
+        position: relative;
+        top: 1px;
+    }
+    
+    .year-content {
+        display: none;
+    }
+    
+    .year-content.active {
+        display: block;
+    }
 </style>
 
 <div>
@@ -51,172 +87,452 @@
 
     {% regroup progress_data by term.year as yearly_progress %}
     
-    {% for year in yearly_progress %}
-        <div class="year-container">
-            {% for term_data in year.list %}
-                <h3>Term: {{ term_data.term.name }} ({{ term_data.term.year }})</h3>
+    <!-- Year tabs navigation -->
+    <div class="year-tabs">
+        <div class="year-tab active" onclick="showAllYears()">All Years</div>
+        {% for year in yearly_progress %}
+            <div class="year-tab" onclick="showYear('{{ year.grouper }}')">{{ year.grouper }}</div>
+        {% endfor %}
+    </div>
+    
+    <!-- All years container -->
+    <div id="all-years" class="year-content active">
+        {% for year in yearly_progress %}
+            <div class="year-container">
+                <h3>Year {{ year.grouper }}</h3>
+                {% for term_data in year.list %}
+                    <h4>Term: {{ term_data.term.name }} ({{ term_data.term.year }})</h4>
+                    
+                    <!-- Term Summary -->
+                    <div class="mb-4 p-4 bg-gray-50 rounded">
+                        <p class="font-semibold">Term Average: {{ term_data.term_average|default:"N/A" }}</p>
+                        <p>Overall Grade: {{ term_data.overall_grade|default:"N/A" }}</p>
+                        <p>Position: {{ term_data.position|default:"N/A" }}</p>
+                    </div>
 
-                <!-- Term Summary -->
-                <div class="mb-4 p-4 bg-gray-50 rounded">
-                    <p class="font-semibold">Term Average: {{ term_data.term_average|default:"N/A" }}</p>
-                    <p>Overall Grade: {{ term_data.overall_grade|default:"N/A" }}</p>
-                    <p>Position: {{ term_data.position|default:"N/A" }}</p>
-                </div>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Subject</th>
-                            <th>CAT 1</th>
-                            <th>CAT 2</th>
-                            <th>CAT 3</th>
-                            <th>Average</th>
-                            <th>Grade</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for subject_data in term_data.subjects %}
+                    <table>
+                        <thead>
                             <tr>
-                                <td>{{ subject_data.subject|default:"N/A" }}</td>
-                                <td>{{ subject_data.cat1|default:"N/A" }}</td>
-                                <td>{{ subject_data.cat2|default:"N/A" }}</td>
-                                <td>{{ subject_data.cat3|default:"N/A" }}</td>
-                                <td>{{ subject_data.average|default:"N/A" }}</td>
-                                <td>{{ subject_data.grade|default:"N/A" }}</td>
+                                <th>Subject</th>
+                                <th>CAT 1</th>
+                                <th>CAT 2</th>
+                                <th>CAT 3</th>
+                                <th>Average</th>
+                                <th>Grade</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {% for subject_data in term_data.subjects %}
+                                <tr>
+                                    <td>{{ subject_data.subject|default:"N/A" }}</td>
+                                    <td>
+                                        {% if subject_data.cat1 != 'N/A' %}
+                                            {{ subject_data.cat1|floatformat:2 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.cat2 != 'N/A' %}
+                                            {{ subject_data.cat2|floatformat:2 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.cat3 != 'N/A' %}
+                                            {{ subject_data.cat3|floatformat:2 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.average != 'N/A' %}
+                                            {{ subject_data.average|floatformat:2 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ subject_data.grade|default:"N/A" }}</td>
+                                </tr>
+                            {% endfor %}
 
-                <!-- Term Chart -->
-                <div class="chart-container">
-                    <canvas id="chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"></canvas>
-                </div>
+                        </tbody>
+                    </table>
 
-                <script>
-                    document.addEventListener("DOMContentLoaded", function() {
-                        var ctx = document.getElementById("chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}").getContext("2d");
-                        var subjects = [{% for subject_data in term_data.subjects %}"{{ subject_data.subject|default:'N/A' }}",{% endfor %}];
-                        var averages = [{% for subject_data in term_data.subjects %}{{ subject_data.average|default:0 }},{% endfor %}];
+                    <!-- Term Chart -->
+                    <div class="chart-container">
+                        <canvas id="chart-all-{{ year.grouper }}-{{ forloop.counter }}"></canvas>
+                    </div>
 
-                        new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: subjects,
-                                datasets: [{
-                                    label: 'Average Marks',
-                                    data: averages,
-                                    borderColor: 'blue',
-                                    backgroundColor: 'transparent',
-                                    borderWidth: 2,
-                                    pointRadius: 4,
-                                    pointBackgroundColor: 'blue',
-                                    fill: false,
-                                    tension: 0.2
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        max: 100
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            var ctx = document.getElementById("chart-all-{{ year.grouper }}-{{ forloop.counter }}").getContext("2d");
+                            var subjects = [{% for subject_data in term_data.subjects %}"{{ subject_data.subject|default:'N/A' }}",{% endfor %}];
+                            var averages = [{% for subject_data in term_data.subjects %}{{ subject_data.average|default:0 }},{% endfor %}];
+
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: subjects,
+                                    datasets: [{
+                                        label: 'Average Marks',
+                                        data: averages,
+                                        borderColor: 'blue',
+                                        backgroundColor: 'transparent',
+                                        borderWidth: 2,
+                                        pointRadius: 4,
+                                        pointBackgroundColor: 'blue',
+                                        fill: false,
+                                        tension: 0.2
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            max: 100
+                                        }
                                     }
                                 }
-                            }
+                            });
                         });
-                    });
-                </script>
-            {% endfor %}
-
-            
+                    </script>
+                {% endfor %}
 
                 <!-- Yearly Analysis Section -->
-            <div class="yearly-analysis">
-                <h3>Year {{ year.grouper }} Performance Analysis</h3>
-                
-                <div class="yearly-summary">
-                    <div class="summary-card">
-                        <h4>Overall Performance</h4>
-                        {% with year_average=year.list|calculate_year_average %}
-                            <p>Year Average: {{ year_average|default:"N/A" }}%</p>
-                            <p>Overall Grade: {{ year_average|calculate_grade }}</p>
-                        {% endwith %}
-                    </div>
+                <div class="yearly-analysis">
+                    <h3>Year {{ year.grouper }} Performance Analysis</h3>
                     
-                    <div class="summary-card">
-                        <h4>Term Comparison</h4>
-                        {% for term_data in year.list %}
-                            <p>{{ term_data.term.name|default:"N/A" }}: {{ term_data.term_average|default:"N/A" }}%</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Yearly Performance Chart -->
-                <div class="chart-container">
-                    <canvas id="yearly-chart-{{ forloop.counter }}"></canvas>
-                </div>
-
-                <script>
-                    document.addEventListener("DOMContentLoaded", function() {
-                        var ctx = document.getElementById("yearly-chart-{{ forloop.counter }}").getContext("2d");
+                    <div class="yearly-summary">
+                        <div class="summary-card">
+                            <h4>Overall Performance</h4>
+                            {% with year_average=year.list|calculate_year_average %}
+                                <p>Year Average: {{ year_average|default:"N/A" }}%</p>
+                                <p>Overall Grade: {{ year_average|calculate_grade }}</p>
+                            {% endwith %}
+                        </div>
                         
-                        var terms = [{% for term_data in year.list %}"{{ term_data.term.name|default:'N/A' }}",{% endfor %}];
-                        var termAverages = [{% for term_data in year.list %}{{ term_data.term_average|default:0 }},{% endfor %}];
-                        
-                        new Chart(ctx, {
-                            type: 'bar',  // Changed to bar for better term comparison
-                            data: {
-                                labels: terms,
-                                datasets: [{
-                                    label: 'Term Average',
-                                    data: termAverages,
-                                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                                    borderColor: 'rgba(54, 162, 235, 1)',
-                                    borderWidth: 1
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        max: 100,
-                                        title: {
-                                            display: true,
-                                            text: 'Average Score (%)'
-                                        }
-                                    },
-                                    x: {
-                                        title: {
-                                            display: true,
-                                            text: 'Terms'
-                                        }
-                                    }
-                                },
-                                plugins: {
-                                    title: {
-                                        display: true,
-                                        text: 'Term Performance Comparison',
-                                        font: {
-                                            size: 16
-                                        }
-                                    },
-                                    legend: {
-                                        position: 'top'
-                                    }
-                                }
-                            }
-                        });
-                    });
-                </script>
-            </div>
+                        <div class="summary-card">
+                            <h4>Term Comparison</h4>
+                            {% for term_data in year.list %}
+                                <p>{{ term_data.term.name|default:"N/A" }}: {{ term_data.term_average|default:"N/A" }}%</p>
+                            {% endfor %}
                         </div>
                     </div>
-                {% endfor %}
-            </div>
 
-            <!-- Load Chart.js -->
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                    <!-- Yearly Performance Chart -->
+                    <div class="chart-container">
+                        <canvas id="yearly-chart-all-{{ year.grouper }}"></canvas>
+                    </div>
+
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            var ctx = document.getElementById("yearly-chart-all-{{ year.grouper }}").getContext("2d");
+                            
+                            var terms = [{% for term_data in year.list %}"{{ term_data.term.name|default:'N/A' }}",{% endfor %}];
+                            var termAverages = [{% for term_data in year.list %}{{ term_data.term_average|default:0 }},{% endfor %}];
+                            
+                            new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: terms,
+                                    datasets: [{
+                                        label: 'Term Average',
+                                        data: termAverages,
+                                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                                        borderColor: 'rgba(54, 162, 235, 1)',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            max: 100,
+                                            title: {
+                                                display: true,
+                                                text: 'Average Score (%)'
+                                            }
+                                        },
+                                        x: {
+                                            title: {
+                                                display: true,
+                                                text: 'Terms'
+                                            }
+                                        }
+                                    },
+                                    plugins: {
+                                        title: {
+                                            display: true,
+                                            text: 'Term Performance Comparison',
+                                            font: {
+                                                size: 16
+                                            }
+                                        },
+                                        legend: {
+                                            position: 'top'
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    </script>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Individual year containers -->
+    {% for year in yearly_progress %}
+        <div id="year-{{ year.grouper }}" class="year-content">
+            <div class="year-container">
+                <h3>Year {{ year.grouper }}</h3>
+                <a href="{% url 'download_year_report' student.id year.grouper %}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Download Year Report PDF
+                </a>
+                
+                {% for term_data in year.list %}
+                    <h4>Term: {{ term_data.term.name }} ({{ term_data.term.year }})</h4>
+
+                    <a href="{% url 'download_term_report' student.id term_data.term.id %}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Download Term Report PDF
+                    </a>
+                    
+                    
+                    <!-- Term Summary -->
+                    <div class="mb-4 p-4 bg-gray-50 rounded">
+                        <p class="font-semibold">Term Average: {{ term_data.term_average|default:"N/A" }}</p>
+                        <p>Overall Grade: {{ term_data.overall_grade|default:"N/A" }}</p>
+                        <p>Position: {{ term_data.position|default:"N/A" }}</p>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>CAT 1</th>
+                                <th>CAT 2</th>
+                                <th>CAT 3</th>
+                                <th>Average</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject_data in term_data.subjects %}
+                                <tr>
+                                    <td>{{ subject_data.subject|default:"N/A" }}</td>
+                                    <td>
+                                        {% if subject_data.cat1 != 'N/A' %}
+                                            {{ subject_data.cat1|floatformat:2 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.cat2 != 'N/A' %}
+                                            {{ subject_data.cat2|floatformat:2 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.cat3 != 'N/A' %}
+                                            {{ subject_data.cat3|floatformat:2 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if subject_data.average != 'N/A' %}
+                                            {{ subject_data.average|floatformat:2 }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ subject_data.grade|default:"N/A" }}</td>
+                                </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+
+                    <!-- Term Chart -->
+                    <div class="chart-container">
+                        <canvas id="chart-{{ year.grouper }}-{{ forloop.counter }}"></canvas>
+                    </div>
+
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            var ctx = document.getElementById("chart-{{ year.grouper }}-{{ forloop.counter }}").getContext("2d");
+                            var subjects = [{% for subject_data in term_data.subjects %}"{{ subject_data.subject|default:'N/A' }}",{% endfor %}];
+                            var averages = [{% for subject_data in term_data.subjects %}{{ subject_data.average|default:0 }},{% endfor %}];
+
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: subjects,
+                                    datasets: [{
+                                        label: 'Average Marks',
+                                        data: averages,
+                                        borderColor: 'blue',
+                                        backgroundColor: 'transparent',
+                                        borderWidth: 2,
+                                        pointRadius: 4,
+                                        pointBackgroundColor: 'blue',
+                                        fill: false,
+                                        tension: 0.2
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            max: 100
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    </script>
+                {% endfor %}
+
+                <!-- Yearly Analysis Section -->
+                <div class="yearly-analysis">
+                    <h3>Year {{ year.grouper }} Performance Analysis</h3>
+                    
+                    <div class="yearly-summary">
+                        <div class="summary-card">
+                            <h4>Overall Performance</h4>
+                            {% with year_average=year.list|calculate_year_average %}
+                                <p>Year Average: {{ year_average|default:"N/A" }}%</p>
+                                <p>Overall Grade: {{ year_average|calculate_grade }}</p>
+                            {% endwith %}
+                        </div>
+                        
+                        <div class="summary-card">
+                            <h4>Term Comparison</h4>
+                            {% for term_data in year.list %}
+                                <p>{{ term_data.term.name|default:"N/A" }}: {{ term_data.term_average|default:"N/A" }}%</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Yearly Performance Chart -->
+                    <div class="chart-container">
+                        <canvas id="yearly-chart-{{ year.grouper }}"></canvas>
+                    </div>
+
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            var ctx = document.getElementById("yearly-chart-{{ year.grouper }}").getContext("2d");
+                            
+                            var terms = [{% for term_data in year.list %}"{{ term_data.term.name|default:'N/A' }}",{% endfor %}];
+                            var termAverages = [{% for term_data in year.list %}{{ term_data.term_average|default:0 }},{% endfor %}];
+                            
+                            new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: terms,
+                                    datasets: [{
+                                        label: 'Term Average',
+                                        data: termAverages,
+                                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                                        borderColor: 'rgba(54, 162, 235, 1)',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            max: 100,
+                                            title: {
+                                                display: true,
+                                                text: 'Average Score (%)'
+                                            }
+                                        },
+                                        x: {
+                                            title: {
+                                                display: true,
+                                                text: 'Terms'
+                                            }
+                                        }
+                                    },
+                                    plugins: {
+                                        title: {
+                                            display: true,
+                                            text: 'Term Performance Comparison',
+                                            font: {
+                                                size: 16
+                                            }
+                                        },
+                                        legend: {
+                                            position: 'top'
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Tab switching JavaScript -->
+<script>
+    function showYear(year) {
+        // Hide all content
+        var contents = document.getElementsByClassName('year-content');
+        for (var i = 0; i < contents.length; i++) {
+            contents[i].classList.remove('active');
+        }
+        
+        // Deactivate all tabs
+        var tabs = document.getElementsByClassName('year-tab');
+        for (var i = 0; i < tabs.length; i++) {
+            tabs[i].classList.remove('active');
+        }
+        
+        // Show selected year content
+        document.getElementById('year-' + year).classList.add('active');
+        
+        // Activate selected tab
+        var selectedTab = event.currentTarget;
+        selectedTab.classList.add('active');
+    }
+    
+    function showAllYears() {
+        // Hide all content
+        var contents = document.getElementsByClassName('year-content');
+        for (var i = 0; i < contents.length; i++) {
+            contents[i].classList.remove('active');
+        }
+        
+        // Deactivate all tabs
+        var tabs = document.getElementsByClassName('year-tab');
+        for (var i = 0; i < tabs.length; i++) {
+            tabs[i].classList.remove('active');
+        }
+        
+        // Show all years content
+        document.getElementById('all-years').classList.add('active');
+        
+        // Activate all years tab
+        var allYearsTab = document.querySelector('.year-tab');
+        allYearsTab.classList.add('active');
+    }
+</script>
