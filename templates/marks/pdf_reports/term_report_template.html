@@ -14,73 +14,79 @@
             margin: 0;
             padding: 0;
             color: #333;
+            font-size: 11px; /* Smaller font globally */
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .logo {
-            max-width: 100px;
-            max-height: 100px;
+            max-width: 70px; /* Smaller logo */
+            max-height: 70px;
         }
         .school-name {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
-            margin: 10px 0;
+            margin: 5px 0;
         }
         .report-title {
-            font-size: 18px;
-            margin-bottom: 20px;
+            font-size: 14px;
+            margin-bottom: 10px;
         }
         .student-info {
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            font-size: 10px;
         }
         .student-info td {
-            padding: 5px;
+            padding: 3px; /* Smaller padding */
         }
         .label {
             font-weight: bold;
-            width: 150px;
+            width: 130px;
         }
         .summary-box {
             border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 20px;
+            padding: 8px;
+            margin-bottom: 10px;
             background-color: #f9f9f9;
+            font-size: 10px;
         }
         table.results {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         table.results th, table.results td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 3px; /* Reduced padding */
             text-align: left;
+            font-size: 10px;
+            line-height: 1.1; /* Tighter spacing */
         }
         table.results th {
             background-color: #f2f2f2;
         }
         .signature-section {
-            margin-top: 40px;
+            margin-top: 20px;
         }
         .signature {
             width: 45%;
             float: left;
             border-top: 1px dotted #000;
-            padding-top: 5px;
+            padding-top: 3px;
             margin-right: 5%;
+            font-size: 10px;
         }
         .footer {
-            margin-top: 80px;
+            margin-top: 30px;
             text-align: center;
-            font-size: 12px;
+            font-size: 9px;
             color: #777;
         }
         .grade-key {
-            font-size: 10px;
-            margin-top: 20px;
+            font-size: 9px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -111,8 +117,8 @@
     </table>
     
     <div class="summary-box">
-        <h3>Term Summary</h3>
-        <table style="width: 100%">
+        <h4 style="margin: 3px 0;">Term Summary</h4>
+        <table style="width: 100%; font-size: 10px;">
             <tr>
                 <td class="label">Term Average:</td>
                 <td>{{ term_data.term_average }}%</td>
@@ -126,7 +132,7 @@
         </table>
     </div>
     
-    <h3>Subject Performance</h3>
+    <h4 style="margin: 5px 0;">Subject Performance</h4>
     <table class="results">
         <thead>
             <tr>
@@ -143,21 +149,51 @@
             {% for subject_data in term_data.subjects %}
                 <tr>
                     <td>{{ subject_data.subject }}</td>
-                    <td>{{ subject_data.cat1 }}</td>
-                    <td>{{ subject_data.cat2 }}</td>
-                    <td>{{ subject_data.cat3 }}</td>
-                    <td>{{ subject_data.average }}</td>
+
+                    <td>
+                        {% if subject_data.cat1 != 'N/A' %}
+                            {{ subject_data.cat1|floatformat:2 }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if subject_data.cat2 != 'N/A' %}
+                            {{ subject_data.cat2|floatformat:2 }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if subject_data.cat3 != 'N/A' %}
+                            {{ subject_data.cat3|floatformat:2 }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if subject_data.average != 'N/A' %}
+                            {{ subject_data.average|floatformat:2 }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+
                     <td>{{ subject_data.grade }}</td>
                     <td>{{ subject_data.position }}</td>
+
                 </tr>
             {% endfor %}
         </tbody>
     </table>
     
     <div class="grade-key">
-        <h4>Grade Key:</h4>
-        <p>A (80-100%) - First Class | B+ (70-79%) - First Class | B (65-69%) - Second Class Upper | 
-           C+ (55-59%) - Second Class Lower | C (50-54%) - Second Class Lower | D (40-49%) - Pass | F (0-39%) - Fail</p>
+        <strong>Grade Key:</strong><br>
+        A (80-100%) - First Class | B+ (70-79%) - First Class | B (65-69%) - Second Class Upper | 
+        C+ (55-59%) - Second Class Lower | C (50-54%) - Second Class Lower | D (40-49%) - Pass | F (0-39%) - Fail
     </div>
     
     <div class="signature-section">
@@ -172,7 +208,7 @@
     </div>
     
     <div class="footer">
-        This is an official document of {{ school_name }}. This report was generated on {{ generated_date }}.
+        This is an official document of {{ school_name }}. Generated on {{ generated_date }}.
     </div>
 </body>
 </html>

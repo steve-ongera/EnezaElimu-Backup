@@ -64,11 +64,15 @@
             border-collapse: collapse;
             margin-bottom: 20px;
         }
+        
         table.results th, table.results td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 4px; /* Reduced from 8px to 4px */
             text-align: left;
+            font-size: 11px; /* Reduced font size */
+            line-height: 1.2; /* Reduce line height */
         }
+        
         table.results th {
             background-color: #f2f2f2;
         }
@@ -188,11 +192,41 @@
                     {% for subject_data in term_data.subjects %}
                         <tr>
                             <td>{{ subject_data.subject }}</td>
-                            <td>{{ subject_data.cat1 }}</td>
-                            <td>{{ subject_data.cat2 }}</td>
-                            <td>{{ subject_data.cat3 }}</td>
-                            <td>{{ subject_data.average }}</td>
+
+                            <td>
+                                {% if subject_data.cat1 != 'N/A' %}
+                                    {{ subject_data.cat1|floatformat:2 }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if subject_data.cat2 != 'N/A' %}
+                                    {{ subject_data.cat2|floatformat:2 }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if subject_data.cat3 != 'N/A' %}
+                                    {{ subject_data.cat3|floatformat:2 }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if subject_data.average != 'N/A' %}
+                                    {{ subject_data.average|floatformat:2 }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+
                             <td>{{ subject_data.grade }}</td>
+
                         </tr>
                     {% endfor %}
                 </tbody>
