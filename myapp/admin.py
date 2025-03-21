@@ -33,7 +33,32 @@ class TeacherAdmin(admin.ModelAdmin):
     search_fields = ('first_name', 'last_name', 'teacher_code', 'email', 'phone')
     list_filter = ('assigned_class', 'gender', 'department')
 
+@admin.register(ResourceCategory)
+class ResourceCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+    search_fields = ('name',)
 
+@admin.register(Resource)
+class ResourceAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'created_at', 'updated_at', 'views', 'is_active')
+    list_filter = ('category', 'is_active', 'created_at')
+    search_fields = ('title', 'description')
+    readonly_fields = ('views', 'created_at', 'updated_at')
+    ordering = ('-created_at',)
+
+@admin.register(ExaminationSession)
+class ExaminationSessionAdmin(admin.ModelAdmin):
+    list_display = ('year', 'start_date', 'end_date')
+    list_filter = ('year',)
+    search_fields = ('year',)
+
+@admin.register(ExamTimeTable)
+class ExamTimeTableAdmin(admin.ModelAdmin):
+    list_display = ('name', 'session', 'start_date', 'end_date')
+    list_filter = ('session__year',)
+    search_fields = ('name', 'session__year')
+
+    
 admin.site.register(Class_of_study)
 admin.site.register(Subject)
 admin.site.register(Student)
