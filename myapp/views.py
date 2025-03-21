@@ -268,6 +268,27 @@ def student_dashboard(request):
     enrolled_subjects = EnrolledSubject.objects.filter(student=student, term=selected_term)
 
 
+    # NEW CODE: Create data for subject performance donut chart
+    # Get recent performance data for the student in the latest term
+    recent_cats = CAT.objects.filter(student=student, term=latest_term)
+    
+    # Create data for subject performance distribution
+    subject_performance = []
+    
+    # Get all subjects with their scores
+    for cat in recent_cats:
+        subject_performance.append({
+            'value': cat.end_term,  # Use the average score
+            'name': cat.subject.name  # Use the subject name
+        })
+    
+    # Sort by score (optional - can comment out if not needed)
+    subject_performance.sort(key=lambda x: x['value'], reverse=True)
+    
+    # Convert to JSON for template
+    performance_data_json = json.dumps(subject_performance)
+
+
     context = {
         'student': student,
         'fee_data': fee_data,
@@ -280,6 +301,8 @@ def student_dashboard(request):
         'enrolled_subjects': enrolled_subjects,
         'fee_balance': fee_balance,
         'subjects_count': subjects_count,
+        'performance_data_json': performance_data_json,  # Added performance data
+
     }
     
     return render(request, 'auth/dashboard.html', context)
