@@ -109,12 +109,11 @@ def custom_login(request):
     return render(request, 'auth/login.html')
 
 
+
 def custom_logout(request):
-    messages.success(request, 'Logged out successfully!')
     logout(request)
+    messages.error(request, "Logged out successfully!")
     return redirect('login')
-
-
 
 # View to display the help and support page
 @login_required

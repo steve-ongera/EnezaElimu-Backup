@@ -53,6 +53,15 @@
           <div class="row justify-content-center">
             <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
 
+
+              {% if messages %}
+              {% for message in messages %}
+                  <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                      {{ message }}
+                  </div>
+              {% endfor %}
+          {% endif %}
+
               <div class="d-flex justify-content-center py-4">
                 <a href="{% url 'login' %}" class="logo d-flex align-items-center w-auto">
                   <img src="{% static 'assets/img/logo.png' %}" alt=""  style="max-width: 80px; max-height: 80px;">
@@ -65,17 +74,6 @@
               <div class="card mb-3">
 
                 <div class="card-body">
-
-                  {% if messages %}
-                  {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                      {{ message }}
-                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                  {% endfor %}
-                {% endif %}
-                
-
 
 
                   <div class="pt-4 pb-2">

@@ -128,11 +128,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 LOGIN_URL = '/'  # Change this to match your actual login page URL
-
-
-LOGIN_REDIRECT_URL = '/'  # Set a default home page (optional)
-
-LOGOUT_REDIRECT_URL = 'login/'
+LOGOUT_REDIRECT_URL = 'login'
 
 
 
