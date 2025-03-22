@@ -366,7 +366,9 @@ def student_progress(request, student_id):
     student = get_object_or_404(Student, id=student_id)
     
     # Get all years from terms
-    years = Term.objects.values_list('year', flat=True).distinct().order_by('-year')
+    # Get years from the student's admission year onwards
+    admission_year = student.admission_date.year
+    years = Term.objects.filter(year__gte=admission_year).values_list('year', flat=True).distinct().order_by('-year')
     years_list = list(years)
     
     # Default to the most recent year if available
@@ -396,30 +398,49 @@ def student_progress(request, student_id):
         for subject in subjects:
             try:
                 cat = CAT.objects.get(student=student, term=term, subject=subject)
+                
+                # Fix: Calculate average based only on completed CATs
+                completed_cats = []
+                if cat.cat1 is not None and cat.cat1 > 0:
+                    completed_cats.append(cat.cat1)
+                if cat.cat2 is not None and cat.cat2 > 0:
+                    completed_cats.append(cat.cat2)
+                if cat.cat3 is not None and cat.cat3 > 0:
+                    completed_cats.append(cat.cat3)
+                
+                # Calculate actual average based on completed CATs only
+                if completed_cats:
+                    subject_average = sum(completed_cats) / len(completed_cats)
+                else:
+                    subject_average = 0
+                
                 subject_data = {
                     'subject': subject,
                     'cat1': cat.cat1,
                     'cat2': cat.cat2,
                     'cat3': cat.cat3,
-                    'average': cat.end_term,
-                    'grade': cat.letter_grade,
-                    'grade_points': cat.grade_points,
+                    'average': subject_average,  # Use our recalculated average
+                    'grade': get_letter_grade(subject_average),
+                    'grade_points': get_grade_points(subject_average),
                     'position': cat.position,
-                    'cat_id': cat.pk  # ADD THIS LINE!
+                    'cat_id': cat.pk
                 }
-                total_score += cat.end_term
-                subject_count += 1
+                
+                if completed_cats:  # Only count subjects with at least one completed CAT
+                    total_score += subject_average
+                    subject_count += 1
                 
                 # Accumulate data for year analysis
                 if subject.id not in year_subjects_data:
                     year_subjects_data[subject.id] = {
                         'subject': subject,
-                        'total_score': cat.end_term,
-                        'term_count': 1,
+                        'total_score': subject_average,
+                        'term_count': 1 if completed_cats else 0,
                     }
                 else:
-                    year_subjects_data[subject.id]['total_score'] += cat.end_term
-                    year_subjects_data[subject.id]['term_count'] += 1
+                    year_subjects_data[subject.id]['total_score'] += subject_average
+                    if completed_cats:
+                        year_subjects_data[subject.id]['term_count'] += 1
                 
             except CAT.DoesNotExist:
                 subject_data = {
@@ -431,7 +452,7 @@ def student_progress(request, student_id):
                     'grade': 'N/A',
                     'grade_points': 'N/A',
                     'position': 'N/A',
-                    'cat_id': None  # So template won’t break
+                    'cat_id': None  # So template won't break
                 }
             
             term_data['subjects'].append(subject_data)
@@ -492,6 +513,69 @@ def student_progress(request, student_id):
         'has_all_terms': has_all_terms,
     }
     return render(request, 'marks/student_progress.html', context)
+
+# Helper functions for grade calculation
+def get_letter_grade(score):
+    if score >= 80:
+        return 'A'
+    elif score >= 75:
+        return 'A-'
+    elif score >= 70:
+        return 'B+'
+    elif score >= 65:
+        return 'B'
+    elif score >= 60:
+        return 'B-'
+    elif score >= 55:
+        return 'C+'
+    elif score >= 50:
+        return 'C'
+    elif score >= 40:
+        return 'D'
+    else:
+        return 'F'
+
+def get_grade_points(score):
+    if score >= 80:
+        return 4.0
+    elif score >= 75:
+        return 3.7
+    elif score >= 70:
+        return 3.3
+    elif score >= 65:
+        return 3.0
+    elif score >= 60:
+        return 2.7
+    elif score >= 55:
+        return 2.3
+    elif score >= 50:
+        return 2.0
+    elif score >= 40:
+        return 1.0
+    else:
+        return 0.0
+
+# This function should already exist in your code
+# but I'm adding a definition in case it doesn't
+def get_grade_and_position(average):
+    if average >= 80:
+        return 'A', 'First Class'
+    elif average >= 75:
+        return 'A-', 'First Class'
+    elif average >= 70:
+        return 'B+', 'First Class'
+    elif average >= 65:
+        return 'B', 'Second Class Upper'
+    elif average >= 60:
+        return 'B-', 'Second Class Upper'
+    elif average >= 55:
+        return 'C+', 'Second Class Lower'
+    elif average >= 50:
+        return 'C', 'Second Class Lower'
+    elif average >= 40:
+        return 'D', 'Pass'
+    else:
+        return 'F', 'Fail'
 
 # Helper function to get grade and position based on average score
 def get_grade_and_position(average):
