@@ -413,6 +413,10 @@ def student_progress(request, student_id):
                     subject_average = sum(completed_cats) / len(completed_cats)
                 else:
                     subject_average = 0
+
+                 # Get appropriate grade and position for this subject based on actual average
+                subject_grade = get_letter_grade(subject_average)
+                _, subject_position = get_grade_and_position(subject_average)
                 
                 subject_data = {
                     'subject': subject,
@@ -420,10 +424,15 @@ def student_progress(request, student_id):
                     'cat2': cat.cat2,
                     'cat3': cat.cat3,
                     'average': subject_average,  # Use our recalculated average
-                    'grade': get_letter_grade(subject_average),
+                    'grade': subject_grade,
                     'grade_points': get_grade_points(subject_average),
-                    'position': cat.position,
-                    'cat_id': cat.pk
+                    'position': subject_position,  # Use the position from our function, not cat.position
+                    'cat_id': cat.pk,
+                    # 'average': subject_average,  # Use our recalculated average
+                    # 'grade': get_letter_grade(subject_average),
+                    # 'grade_points': get_grade_points(subject_average),
+                    # 'position': cat.position,
+                    # 'cat_id': cat.pk
                 }
                 
                 if completed_cats:  # Only count subjects with at least one completed CAT
