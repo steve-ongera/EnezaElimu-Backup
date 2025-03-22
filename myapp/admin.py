@@ -82,6 +82,29 @@ class TermReporting(models.Model):
     def __str__(self):
         return f"{self.student.name} - {self.term} ({self.get_status_display()})"
     
+
+@admin.register(TermReporting)
+class TermReportingAdmin(admin.ModelAdmin):
+    list_display = ('student', 'term', 'reporting_date', 'status')
+    list_filter = ('term', 'status', 'reporting_date')
+    search_fields = ('student__name', 'student__admission_number', 'notes')
+    date_hierarchy = 'reporting_date'
+    
+    # Actions for bulk updates
+    actions = ['mark_as_reported', 'mark_as_absent', 'mark_as_late']
+    
+    def mark_as_reported(self, request, queryset):
+        queryset.update(status='REPORTED')
+    mark_as_reported.short_description = "Mark selected students as reported"
+    
+    def mark_as_absent(self, request, queryset):
+        queryset.update(status='ABSENT')
+    mark_as_absent.short_description = "Mark selected students as absent"
+    
+    def mark_as_late(self, request, queryset):
+        queryset.update(status='LATE')
+    mark_as_late.short_description = "Mark selected students as late"
+    
 admin.site.register(Class_of_study)
 admin.site.register(Subject)
 admin.site.register(Student)
