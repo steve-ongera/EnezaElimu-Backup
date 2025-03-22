@@ -1246,7 +1246,7 @@ def cat_create(request):
         form = CATForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('cat_list')
+            return redirect('cat_create')
     else:
         form = CATForm()
     return render(request, 'cats/cat_form.html', {'form': form})
@@ -2614,3 +2614,24 @@ def view_fee_structure(request):
 
 
     return render(request, 'students/all_fee_structures.html', context)
+
+
+
+
+def student_teachers_view(request, admission_number):
+    # Get the current student using admission_number
+    student = get_object_or_404(Student, admission_number=admission_number)
+
+    # 1. Get all Senior Teachers
+    senior_teachers = Teacher.objects.filter(position__iexact="Senior Teacher")  # case insensitive match
+
+    # 2. Get teachers assigned to student's class
+    assigned_teachers = Teacher.objects.filter(assigned_class=student.current_class)
+
+    context = {
+        'student': student,
+        'senior_teachers': senior_teachers,
+        'assigned_teachers': assigned_teachers,
+    }
+
+    return render(request, 'students/teachers_list.html', context)

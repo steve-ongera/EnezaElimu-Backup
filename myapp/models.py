@@ -556,3 +556,14 @@ class TermReporting(models.Model):
     
     def __str__(self):
         return f"{self.student.name} - {self.term} ({self.get_status_display()})"
+    
+
+
+class Event(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    date = models.DateField()
+    term = models.ForeignKey('Term', on_delete=models.CASCADE)  # Assuming event is linked to term
+
+    def __str__(self):
+        return self.title
