@@ -523,7 +523,10 @@ def individual_student_progress(request):
     except Student.DoesNotExist:
         return render(request, 'marks/no_results.html', {'message': 'Student record not found.'})
 
-    terms = Term.objects.all().order_by('-year', 'name')
+    admission_year = student.admission_date.year
+    terms = Term.objects.filter(year__gte=admission_year).order_by('-year', 'name')
+
+
     subjects = Subject.objects.all()
     progress_data = []
 
