@@ -80,7 +80,7 @@
 
     <!-- Attendance -->
     <li class="nav-item">
-      <a class="nav-link collapsed" href="{% url 'student_teachers' admission_number=student.admission_number %}">
+      <a class="nav-link collapsed" href="{% url 'student_teachers'  %}">
         <i class="bi bi-calendar-check"></i>
         <span>Teachers</span>
       </a>
@@ -88,7 +88,7 @@
 
     <!-- Events & Notices -->
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link collapsed" href="{% url 'current_term_events'%}">
         <i class="bi bi-megaphone"></i>
         <span>Events & Notices</span>
       </a>

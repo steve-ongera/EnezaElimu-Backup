@@ -215,7 +215,7 @@ def student_dashboard(request):
     
 
     recent_activities = Activity.objects.order_by('-timestamp')[:6]
-    news_updates = NewsUpdate.objects.all().order_by('-published_date')[:8]
+    news_updates = NewsUpdate.objects.all().order_by('-published_date')[:5]
 
     terms = Term.objects.all().order_by('-year', 'name')
 
@@ -2618,12 +2618,17 @@ def view_fee_structure(request):
 
 
 
-def student_teachers_view(request, admission_number):
-    # Get the current student using admission_number
-    student = get_object_or_404(Student, admission_number=admission_number)
-
+@login_required
+def student_teachers_view(request):
+    try:
+        # Fetch student based on username == admission_number
+        student = Student.objects.get(admission_number=request.user.username)
+    except Student.DoesNotExist:
+        messages.error(request, "No student profile found for your account.")
+        return redirect('student_dashboard')  # Redirect wherever your dashboard is
+    
     # 1. Get all Senior Teachers
-    senior_teachers = Teacher.objects.filter(position__iexact="Senior Teacher")  # case insensitive match
+    senior_teachers = Teacher.objects.filter(position__iexact="Senior Teacher")
 
     # 2. Get teachers assigned to student's class
     assigned_teachers = Teacher.objects.filter(assigned_class=student.current_class)
@@ -2635,3 +2640,20 @@ def student_teachers_view(request, admission_number):
     }
 
     return render(request, 'students/teachers_list.html', context)
+
+
+def current_term_events(request):
+    # Get the current term
+    current_term = Term.objects.filter(is_current=True).first()
+    
+    events = []
+    if current_term:
+        # Get events related to the current term
+        events = Event.objects.filter(term=current_term)
+    
+    context = {
+        'current_term': current_term,
+        'events': events,
+    }
+    
+    return render(request, 'events/current_term_events.html', context)

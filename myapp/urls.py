@@ -22,8 +22,9 @@ urlpatterns = [
     
     path('student_dashboard/', views.student_dashboard, name='student_dashboard'),
     path('report-for-term/', views.student_report_for_term, name='report_for_term'),
-    path('student/<str:admission_number>/teachers/', views.student_teachers_view, name='student_teachers'),
+    path('student/teachers/', views.student_teachers_view, name='student_teachers'),
     path('fees/', views.view_fee_structure, name='view_all_fee_structures'),
+    path('events/current-term/', views.current_term_events, name='current_term_events'),
     path('individual_student_progress/' , views.individual_student_progress , name='individual_student_progress'),
     path('student/<int:student_id>/year-report/<int:year>/', views.download_year_report, name='download_year_report'),
     path('student/<int:student_id>/term-report/<int:term_id>/', views.download_term_report, name='download_term_report'),

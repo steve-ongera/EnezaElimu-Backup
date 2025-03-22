@@ -58,7 +58,12 @@ class ExamTimeTableAdmin(admin.ModelAdmin):
     list_filter = ('session__year',)
     search_fields = ('name', 'session__year')
 
-
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('title', 'term', 'date')  # Columns to display in the list
+    list_filter = ('term', 'date')            # Add filters by term and date
+    search_fields = ('title', 'description')  # Add search functionality
+    ordering = ('-date',)      
 
     
 
