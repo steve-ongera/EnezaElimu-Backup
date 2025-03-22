@@ -526,7 +526,6 @@ def individual_student_progress(request):
     admission_year = student.admission_date.year
     terms = Term.objects.filter(year__gte=admission_year).order_by('-year', 'name')
 
-
     subjects = Subject.objects.all()
     progress_data = []
 
@@ -545,25 +544,44 @@ def individual_student_progress(request):
         for subject in subjects:
             try:
                 cat = CAT.objects.get(student=student, term=term, subject=subject)
+                
+                # Fix: Calculate average based only on completed CATs
+                completed_cats = []
+                if cat.cat1 is not None and cat.cat1 > 0:
+                    completed_cats.append(cat.cat1)
+                if cat.cat2 is not None and cat.cat2 > 0:
+                    completed_cats.append(cat.cat2)
+                if cat.cat3 is not None and cat.cat3 > 0:
+                    completed_cats.append(cat.cat3)
+                
+                # Calculate actual average based on completed CATs only
+                if completed_cats:
+                    subject_average = sum(completed_cats) / len(completed_cats)
+                else:
+                    subject_average = 0
+                
                 subject_data = {
                     'subject': subject.name,
                     'cat1': cat.cat1,
                     'cat2': cat.cat2,
                     'cat3': cat.cat3,
-                    'average': cat.end_term,  # Used in graph
-                    'grade': cat.letter_grade,
-                    'grade_points': cat.grade_points,
+                    'average': subject_average,  # Use our recalculated average
+                    'grade': get_letter_grade(subject_average),  # You'll need to add this function
+                    'grade_points': get_grade_points(subject_average),  # You'll need to add this function
                     'position': cat.position
                 }
-                total_score += cat.end_term
-                subject_count += 1
+                
+                if completed_cats:  # Only count subjects with at least one completed CAT
+                    total_score += subject_average
+                    subject_count += 1
+                
             except CAT.DoesNotExist:
                 subject_data = {
                     'subject': subject.name,
                     'cat1': 'N/A',
                     'cat2': 'N/A',
                     'cat3': 'N/A',
-                    'average': 0,  # Default to 0 for graph
+                    'average': 'N/A',
                     'grade': 'N/A',
                     'grade_points': 'N/A',
                     'position': 'N/A'
@@ -609,6 +627,47 @@ def individual_student_progress(request):
         'progress_data': progress_data,
     }
     return render(request, 'marks/individual_student_progress.html', context)
+
+# Helper functions for grade calculation
+def get_letter_grade(score):
+    if score >= 80:
+        return 'A'
+    elif score >= 75:
+        return 'A-'
+    elif score >= 70:
+        return 'B+'
+    elif score >= 65:
+        return 'B'
+    elif score >= 60:
+        return 'B-'
+    elif score >= 55:
+        return 'C+'
+    elif score >= 50:
+        return 'C'
+    elif score >= 40:
+        return 'D'
+    else:
+        return 'F'
+
+def get_grade_points(score):
+    if score >= 80:
+        return 4.0
+    elif score >= 75:
+        return 3.7
+    elif score >= 70:
+        return 3.3
+    elif score >= 65:
+        return 3.0
+    elif score >= 60:
+        return 2.7
+    elif score >= 55:
+        return 2.3
+    elif score >= 50:
+        return 2.0
+    elif score >= 40:
+        return 1.0
+    else:
+        return 0.0
 
 #download reports view 
 from myapp.utils import (
