@@ -44,7 +44,7 @@
     <li class="nav-item">
       <a class="nav-link collapsed" href="{% url 'enroll_subjects'%}">
         <i class="bi bi-journal-text"></i>
-        <span>My Subjects</span>
+        <span>Enroll Subjects</span>
       </a>
     </li>
 
@@ -65,23 +65,16 @@
     <!-- Exams & Reports -->
     <li class="nav-item">
       <a class="nav-link collapsed" data-bs-target="#exam-nav"  href="{% url 'report_for_term'%}">
-        <i class="bi bi-layout-text-window-reverse"></i><span>Reporting</span><i class="bi bi-chevron-down ms-auto"></i>
+        <i class="bi bi-layout-text-window-reverse"></i><span>Reporting</span>
       </a>
-      <ul id="exam-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <li>
-          <a href="#">
-            <i class="bi bi-circle"></i><span>Upcoming Exams</span>
-          </a>
-        </li>
-       
-      </ul>
+      
     </li>
 
     <!-- Fee Information -->
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link collapsed" href="{% url 'view_all_fee_structures'%}">
         <i class="bi bi-cash-coin"></i>
-        <span>Fee Status</span>
+        <span>Fee Structures</span>
       </a>
     </li>
 

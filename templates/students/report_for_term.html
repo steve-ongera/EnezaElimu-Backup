@@ -17,9 +17,9 @@
                             <p>You have already reported for {{ current_term }}.</p>
                         </div>
                     {% else %}
-                        <div class="alert alert-warning">
+                        <div class="alert alert-success">
                             <h4>Current Term: {{ current_term }}</h4>
-                            <p>Please confirm your attendance for this term.</p>
+                            <p>Please confirm your reporting for this term.</p>
                         </div>
                         
                         <form method="post">
@@ -52,7 +52,7 @@
                     {% endif %}
                 </div>
                 <div class="card-footer text-center">
-                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+                    <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
                 </div>
             </div>
         </div>

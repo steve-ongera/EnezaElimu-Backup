@@ -27,7 +27,7 @@ Account = get_user_model()
 from django.db.models import Avg, Sum, Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.http import HttpResponseForbidden
-
+from datetime import date
 from django.utils import timezone
 import datetime
 from datetime import datetime
@@ -264,18 +264,27 @@ def student_dashboard(request):
         latest_term_position = dummy_cat.determine_position()
 
     # Fee balance data (from previous discussion)
-    terms = Term.objects.all().order_by('-year', 'name')
+    current_year = date.today().year
+    admission_year = student.admission_date.year  # Extract year
+
+    # Get terms from admission year up to current year
+    terms = Term.objects.filter(year__gte=admission_year, year__lte=current_year).order_by('year', 'name')
+
     fee_data = []
-    
+
     for term in terms:
+        # Get required fee
         try:
             required_fee = term.fee_structure.amount_required
-        except:
+        except AttributeError:
             required_fee = 0
 
+        # Get amount paid
         total_paid = FeePayment.objects.filter(student=student, term=term).aggregate(total=Sum('amount_paid'))['total'] or 0
+
+        # Calculate balance
         balance = required_fee - total_paid
-        
+
         fee_data.append({
             'term': term,
             'required_fee': required_fee,
@@ -2207,25 +2216,48 @@ def nav_bar_messages(request):
 @login_required
 def enroll_subjects(request):
     student = Student.objects.get(admission_number=request.user.username)
+
+    try:
+        current_term = Term.objects.get(is_current=True)
+    except Term.DoesNotExist:
+        messages.error(request, "Current term not set. Please contact admin.")
+        return redirect('student_dashboard')
     
-    if request.method == 'POST':
+    # Check if student already enrolled for current term
+    already_enrolled = EnrolledSubject.objects.filter(student=student, term=current_term).exists()
+
+    form = EnrollSubjectForm()
+    form.fields['term'].queryset = Term.objects.filter(id=current_term.id)
+    form.fields['term'].initial = current_term
+
+    if request.method == 'POST' and not already_enrolled:
         form = EnrollSubjectForm(request.POST)
+        form.fields['term'].queryset = Term.objects.filter(id=current_term.id)
+        form.fields['term'].initial = current_term
         if form.is_valid():
-            term = form.cleaned_data['term']
             subjects = form.cleaned_data['subjects']
 
             # Prevent duplicate enrollments
             for subject in subjects:
                 EnrolledSubject.objects.get_or_create(
                     student=student,
-                    term=term,
+                    term=current_term,
                     subject=subject
                 )
-            return redirect('student_dashboard')  # Redirect to student dashboard after enrollment
-    else:
-        form = EnrollSubjectForm()
-    
-    return render(request, 'students/enroll_subjects.html', {'form': form})
+            messages.success(request, f"Successfully enrolled for {current_term.name} {current_term.year}.")
+            return redirect('student_dashboard')
+
+    context = {
+        'form': form,
+        'current_term': current_term,
+        'student': student,
+        'already_enrolled': already_enrolled,
+    }
+
+    return render(request, 'students/enroll_subjects.html', context)
+
+
+
 
 
 #resources views
@@ -2320,39 +2352,32 @@ def exam_timetable_detail(request, pk):
     return render(request, 'time_table/exam_timetable_detail.html', {'timetable': timetable})
 
 
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.utils import timezone
 
 @login_required
 def student_report_for_term(request):
     """
-    View for students to self-report for the current term.
+    View for students to self-report for the current active term.
     Only accessible to authenticated users.
     """
-    # Since there's no direct User-Student relationship, we need to identify the student differently
-    # You might want to use admission_number or another unique identifier
-    
-    # Option 1: If the username matches admission_number
+    # Identify student based on admission_number matching username
     try:
         student = Student.objects.get(admission_number=request.user.username)
     except Student.DoesNotExist:
         messages.error(request, "No student profile found for your account. Please contact administration.")
-        return redirect('student_dashboard')  # Redirect to a suitable page
+        return redirect('student_dashboard')
     
-    # Get the current term
-    # This assumes you have a way to set the current term (e.g., is_current field)
-    # Modify as needed based on your Term model implementation
+    # Get the current active term (where is_current=True)
     try:
-        current_term = Term.objects.filter(
-            year=timezone.now().year
-        ).order_by('-id').first()  # Get the most recent term for current year
-        
-        if not current_term:
-            messages.warning(request, "No active term found. Please contact administration.")
-            return redirect('student_dashboard')
+        current_term = Term.objects.get(is_current=True)
     except Term.DoesNotExist:
         messages.warning(request, "No active term found. Please contact administration.")
         return redirect('student_dashboard')
     
-    # Check if student has already reported for this term
+    # Check if the student has already reported for the current term
     existing_report = TermReporting.objects.filter(
         student=student,
         term=current_term
@@ -2363,7 +2388,6 @@ def student_report_for_term(request):
             messages.info(request, f"You have already reported for {current_term}.")
             return redirect('student_dashboard')
         
-        # Create a new reporting record
         notes = request.POST.get('notes', '')
         
         TermReporting.objects.create(
@@ -2384,3 +2408,35 @@ def student_report_for_term(request):
     }
     
     return render(request, 'students/report_for_term.html', context)
+
+
+@login_required
+def view_fee_structure(request):
+    try:
+        student = Student.objects.get(admission_number=request.user.username)
+    except Student.DoesNotExist:
+        messages.error(request, "No student profile found for your account.")
+        return redirect('student_dashboard')
+
+    if not student.admission_date:
+        messages.error(request, "Your admission date is not set. Please contact administration.")
+        return redirect('student_dashboard')
+
+    # Filter terms from the student's admission date to the current date
+    current_year = date.today().year
+    terms = Term.objects.filter(year__gte=student.admission_date.year, year__lte=current_year)
+
+    # Retrieve fee structures for the filtered terms
+    fee_structures = FeeStructure.objects.filter(term__in=terms).select_related('term')
+
+    # Identify the current term
+    current_term = Term.objects.filter(is_current=True).first()
+
+    context = {
+        'student': student,
+        'fee_structures': fee_structures,
+        'current_term': current_term
+    }
+
+
+    return render(request, 'students/all_fee_structures.html', context)
