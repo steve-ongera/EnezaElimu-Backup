@@ -781,18 +781,37 @@ def generate_progress_data(student):
         for subject in subjects:
             try:
                 cat = CAT.objects.get(student=student, term=term, subject=subject)
+                
+                # Fix: Calculate average based only on completed CATs
+                completed_cats = []
+                if cat.cat1 is not None and cat.cat1 > 0:
+                    completed_cats.append(cat.cat1)
+                if cat.cat2 is not None and cat.cat2 > 0:
+                    completed_cats.append(cat.cat2)
+                if cat.cat3 is not None and cat.cat3 > 0:
+                    completed_cats.append(cat.cat3)
+                
+                # Calculate actual average based on completed CATs only
+                if completed_cats:
+                    subject_average = sum(completed_cats) / len(completed_cats)
+                else:
+                    subject_average = 0
+                
                 subject_data = {
                     'subject': subject,
                     'cat1': cat.cat1,
                     'cat2': cat.cat2,
                     'cat3': cat.cat3,
-                    'average': cat.end_term,
-                    'grade': cat.letter_grade,
-                    'grade_points': cat.grade_points,
+                    'average': subject_average,  # Use our recalculated average instead of cat.end_term
+                    'grade': get_letter_grade(subject_average),  # Calculate grade based on new average
+                    'grade_points': get_grade_points(subject_average),  # Calculate points based on new average
                     'position': cat.position
                 }
-                total_score += cat.end_term
-                subject_count += 1
+                
+                if completed_cats:  # Only count subjects with at least one completed CAT
+                    total_score += subject_average
+                    subject_count += 1
+                
             except CAT.DoesNotExist:
                 subject_data = {
                     'subject': subject,
