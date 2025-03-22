@@ -63,6 +63,10 @@ TEMPLATES = [
     },
 ]
 
+# Optional but recommended
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+
 WSGI_APPLICATION = 'EnezaElimu.wsgi.application'
 
 

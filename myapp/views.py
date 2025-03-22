@@ -110,10 +110,9 @@ def custom_login(request):
 
 
 def custom_logout(request):
+    messages.success(request, 'Logged out successfully!')
     logout(request)
-    messages.error(request, 'Loged out successfully !')
-    return redirect('login')  # Redirect to login page after logout
-
+    return redirect('login')
 
 
 
@@ -208,7 +207,11 @@ from .models import CAT, Term
 @login_required
 def student_dashboard(request):
     # Get the logged-in student's details
-    student = Student.objects.get(admission_number=request.user.username)
+    try:
+        student = Student.objects.get(admission_number=request.user.username)
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found. Please contact administration.")
+        return redirect('login')  # or wherever you'd like to redirect
 
     
 

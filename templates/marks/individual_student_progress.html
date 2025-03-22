@@ -9,18 +9,25 @@
         width: 100%;
         border-collapse: collapse;
         margin: 20px 0;
-        font-size: 16px;
+        font-size: 11px; /* Slightly smaller font */
     }
-
+    
     th, td {
         border: 1px solid black;
-        padding: 8px;
+        padding: 6px 10px; /* Reduced padding */
         text-align: left;
     }
-
+    
     th {
-        font-weight: bold;
+        font-weight: 600;
+        background-color: #f8f9fa; /* Light background for header */
     }
+    
+    /* Optional: Add subtle zebra striping */
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    
 
     .chart-container {
         width: 100%;
