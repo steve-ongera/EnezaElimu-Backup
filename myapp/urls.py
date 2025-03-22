@@ -21,6 +21,7 @@ urlpatterns = [
     path('reset-password/<uidb64>/<token>/', views.reset_password, name='reset_password'),
     
     path('student_dashboard/', views.student_dashboard, name='student_dashboard'),
+    path('report-for-term/', views.student_report_for_term, name='report_for_term'),
     path('individual_student_progress/' , views.individual_student_progress , name='individual_student_progress'),
     path('student/<int:student_id>/year-report/<int:year>/', views.download_year_report, name='download_year_report'),
     path('student/<int:student_id>/term-report/<int:term_id>/', views.download_term_report, name='download_term_report'),

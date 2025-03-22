@@ -94,9 +94,16 @@ class Student(models.Model):
 class Term(models.Model):
     name = models.CharField(max_length=50)  # Term 1, Term 2, Term 3
     year = models.IntegerField()  # e.g., 2023
+    is_current = models.BooleanField(default=False)  # Indicates if this is the current active term
 
     def __str__(self):
         return f"{self.name} {self.year}"
+    
+    def save(self, *args, **kwargs):
+        # If this term is being set as current, make sure no other term is current
+        if self.is_current:
+            Term.objects.filter(is_current=True).update(is_current=False)
+        super().save(*args, **kwargs)
 
 class CAT(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='cats')
@@ -522,3 +529,29 @@ class ExamTimeTable(models.Model):
 
     def __str__(self):
         return f"Timetable for {self.session.year} "  
+    
+
+
+
+class TermReporting(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='term_reports')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE)
+    reporting_date = models.DateField()
+    
+    # Simple reporting status
+    STATUS_CHOICES = [
+        ('REPORTED', 'Reported'),
+        ('ABSENT', 'Absent'),
+        ('LATE', 'Late Reporting'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='REPORTED')
+    
+    # Optional notes field
+    notes = models.TextField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ['student', 'term']
+        ordering = ['-term__year', 'term__name', 'reporting_date']
+    
+    def __str__(self):
+        return f"{self.student.name} - {self.term} ({self.get_status_display()})"

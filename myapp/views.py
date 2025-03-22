@@ -2318,3 +2318,69 @@ def exam_timetable_detail(request, pk):
     
     # Return the rendered template with the timetable object
     return render(request, 'time_table/exam_timetable_detail.html', {'timetable': timetable})
+
+
+
+@login_required
+def student_report_for_term(request):
+    """
+    View for students to self-report for the current term.
+    Only accessible to authenticated users.
+    """
+    # Since there's no direct User-Student relationship, we need to identify the student differently
+    # You might want to use admission_number or another unique identifier
+    
+    # Option 1: If the username matches admission_number
+    try:
+        student = Student.objects.get(admission_number=request.user.username)
+    except Student.DoesNotExist:
+        messages.error(request, "No student profile found for your account. Please contact administration.")
+        return redirect('student_dashboard')  # Redirect to a suitable page
+    
+    # Get the current term
+    # This assumes you have a way to set the current term (e.g., is_current field)
+    # Modify as needed based on your Term model implementation
+    try:
+        current_term = Term.objects.filter(
+            year=timezone.now().year
+        ).order_by('-id').first()  # Get the most recent term for current year
+        
+        if not current_term:
+            messages.warning(request, "No active term found. Please contact administration.")
+            return redirect('student_dashboard')
+    except Term.DoesNotExist:
+        messages.warning(request, "No active term found. Please contact administration.")
+        return redirect('student_dashboard')
+    
+    # Check if student has already reported for this term
+    existing_report = TermReporting.objects.filter(
+        student=student,
+        term=current_term
+    ).first()
+    
+    if request.method == 'POST':
+        if existing_report:
+            messages.info(request, f"You have already reported for {current_term}.")
+            return redirect('student_dashboard')
+        
+        # Create a new reporting record
+        notes = request.POST.get('notes', '')
+        
+        TermReporting.objects.create(
+            student=student,
+            term=current_term,
+            reporting_date=timezone.now().date(),
+            status='REPORTED',
+            notes=notes
+        )
+        
+        messages.success(request, f"You have successfully reported for {current_term}.")
+        return redirect('student_dashboard')
+    
+    context = {
+        'student': student,
+        'current_term': current_term,
+        'already_reported': existing_report is not None
+    }
+    
+    return render(request, 'students/report_for_term.html', context)
