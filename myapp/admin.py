@@ -58,6 +58,29 @@ class ExamTimeTableAdmin(admin.ModelAdmin):
     list_filter = ('session__year',)
     search_fields = ('name', 'session__year')
 
+
+class TermReporting(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='term_reports')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE)
+    reporting_date = models.DateField()
+    
+    # Simple reporting status
+    STATUS_CHOICES = [
+        ('REPORTED', 'Reported'),
+        ('ABSENT', 'Absent'),
+        ('LATE', 'Late Reporting'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='REPORTED')
+    
+    # Optional notes field
+    notes = models.TextField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ['student', 'term']
+        ordering = ['-term__year', 'term__name', 'reporting_date']
+    
+    def __str__(self):
+        return f"{self.student.name} - {self.term} ({self.get_status_display()})"
     
 admin.site.register(Class_of_study)
 admin.site.register(Subject)
