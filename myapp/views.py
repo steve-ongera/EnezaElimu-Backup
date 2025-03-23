@@ -1819,12 +1819,20 @@ def teacher_create(request):
     return render(request, 'teachers/teacher_form.html', {'form': form})
 
 
+
 @login_required
-# Teacher Detail View
 def teacher_detail(request, teacher_id):
     teacher = get_object_or_404(Teacher, id=teacher_id)
-    return render(request, 'teachers/teacher_detail.html', {'teacher': teacher})
+    
+    User = get_user_model()
+    teacher_user = User.objects.filter(username=teacher.username).first()
 
+    can_message = teacher_user is not None and teacher_user != request.user
+
+    return render(request, 'teachers/teacher_detail.html', {
+        'teacher': teacher,
+        'can_message': can_message,
+    })
 
 @login_required
 # Edit Teacher
@@ -2280,6 +2288,8 @@ def news_delete(request, pk):
         return redirect('dashbaord')  # Redirect to a suitable page after deletion
 
     return render(request, 'news/news_confirm_delete.html', {'news': news})
+
+
 
 
 

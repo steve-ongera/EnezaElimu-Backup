@@ -195,6 +195,7 @@ class Teacher(models.Model):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, unique=True)
     address = models.TextField(null=True, blank=True)
+    username = models.CharField(max_length=150, blank=True, null=True)  # New field added
     
     # Assigned Class
     assigned_class = models.ForeignKey(Class_of_study, on_delete=models.SET_NULL, null=True, blank=True, related_name="teachers")

@@ -118,6 +118,9 @@ urlpatterns = [
     path('messages/', views.message_list, name='message_list'),
     path('messages/create/<str:username>/', views.create_chat, name='create_chat'),
 
+
+
+
     #resources views
     path('resources/add/', views.add_resource, name='add_resource'),
     path('resources/', views.resources_list, name='resources_list'),
