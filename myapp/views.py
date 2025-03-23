@@ -33,6 +33,39 @@ import datetime
 from datetime import datetime
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models import Sum
+from django.db.models import Max
+from django.shortcuts import render
+from django.db.models import Avg, Count, F, Q
+from django.db.models.functions import Coalesce
+from django.core.cache import cache
+from collections import defaultdict
+
+from django.shortcuts import render
+from django.db.models import Avg, Count, F, Prefetch, Q
+from django.db.models.functions import Coalesce
+from django.core.cache import cache
+from django.conf import settings
+
+from django.shortcuts import render
+from django.db.models import Avg, Count, F, Q
+from django.db.models.functions import Coalesce
+from django.core.cache import cache
+from collections import defaultdict
+
+
+
+from django.db.models import Count
+import json
+from django.db.models import Count
+from django.db.models.functions import ExtractYear
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.utils import timezone
 
 def register(request):
     if request.method == "POST":
@@ -88,23 +121,21 @@ def custom_login(request):
         admission_number = request.POST['admission_number']
         password = request.POST['password']
 
-        # Authenticate user
         user = authenticate(request, username=admission_number, password=password)
 
         if user is not None:
             login(request, user)
-            next_url = request.GET.get('next') or request.POST.get('next')  # Get intended URL
+            next_url = request.GET.get('next') or request.POST.get('next')
 
-            # Redirect based on user role
-            if user.is_staff:  # If user is staff (admin)
-                messages.success(request, "you have loged in successfully.")
+            messages.success(request, "You have logged in successfully.")
+            if user.is_staff:
                 return redirect(next_url if next_url else 'admin_dashboard')
-            else:  # If normal student
-                messages.success(request, "you have loged in successfully.")
+            else:
                 return redirect(next_url if next_url else 'student_dashboard')
-
         else:
-            messages.error(request, "Invalid admission number or password.")
+            # Instead of redirecting, render the template with the error
+            context = {'error_message': "Invalid admission number or password."}
+            return render(request, 'auth/login.html', context)
 
     return render(request, 'auth/login.html')
 
@@ -197,11 +228,8 @@ def reset_password(request, uidb64, token):
     
 
 
-from django.db.models import Sum
-from .models import FeePayment, FeeStructure, Term
 
-from django.db.models import Max
-from .models import CAT, Term
+
 
 @login_required
 def student_dashboard(request):
@@ -1367,15 +1395,8 @@ def search_student(request):
     return render(request, "search/search_student.html", {"form": form, "students": students})
 
 
-    #rankings
+#rankings
 
-    # views.py
-# views.py
-from django.shortcuts import render
-from django.db.models import Avg, Count, F, Prefetch, Q
-from django.db.models.functions import Coalesce
-from django.core.cache import cache
-from django.conf import settings
 @login_required
 def student_rankings(request):
     # Get filter parameters from request
@@ -1502,13 +1523,6 @@ def _calculate_overall_grade(gpa):
 
 
 
-
-# views.py
-from django.shortcuts import render
-from django.db.models import Avg, Count, F, Q
-from django.db.models.functions import Coalesce
-from django.core.cache import cache
-from collections import defaultdict
 @login_required
 def stream_performance(request):
     # Get filter parameters
@@ -1644,12 +1658,6 @@ def _get_letter_grade(points):
     return 'F'
 
 
-# views.py
-from django.shortcuts import render
-from django.db.models import Avg, Count, F, Q
-from django.db.models.functions import Coalesce
-from django.core.cache import cache
-from collections import defaultdict
 @login_required
 def subject_performance(request):
     # Get filter parameters
@@ -2084,14 +2092,6 @@ def student_results(request):
 
 
 #admin dashboard
-# views.py
-
-
-from django.db.models import Count
-import json
-from django.db.models import Count
-from django.db.models.functions import ExtractYear
-
 import json
 
 @login_required
@@ -2444,7 +2444,7 @@ def enroll_subjects(request):
 
 
 
-#resources views
+#resources and revision material  views
 def add_resource(request):
     if request.method == 'POST':
         form = ResourceForm(request.POST, request.FILES)
@@ -2536,10 +2536,6 @@ def exam_timetable_detail(request, pk):
     return render(request, 'time_table/exam_timetable_detail.html', {'timetable': timetable})
 
 
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.utils import timezone
 
 @login_required
 def student_report_for_term(request):

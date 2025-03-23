@@ -35,9 +35,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',  # Move this here
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
 ]
 
 MIDDLEWARE += [
@@ -58,6 +57,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'myapp.context_processors.unread_messages',  # Add this line
+                
             ],
         },
     },
