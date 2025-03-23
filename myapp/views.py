@@ -1275,17 +1275,18 @@ def cat_detail(request, pk):
 
 
 @login_required
-# Update an existing CAT record
 def cat_update(request, pk):
     cat = get_object_or_404(CAT, pk=pk)
     if request.method == 'POST':
         form = CATForm(request.POST, instance=cat)
         if form.is_valid():
             form.save()
-            return redirect('cat_list')
+            # Redirect back to the same CAT detail view
+            return redirect('cat_detail', pk=cat.pk)
     else:
         form = CATForm(instance=cat)
-    return render(request, 'cats/cat_form.html', {'form': form})
+    return render(request, 'cats/updatecat_form.html', {'form': form})
+
 
 
 @login_required
@@ -2114,15 +2115,16 @@ def admin_dashboard(request):
 
 
     # Get counts
+    active_student_count = Student.objects.filter(is_active=True).count()
     student_count = Student.objects.count()
     teacher_count = Teacher.objects.count()
     staff_count = Staff.objects.count()
     nonstaff_count = NonStaff.objects.count()
     recent_activities = Activity.objects.order_by('-timestamp')[:6]
-    news_updates = NewsUpdate.objects.all().order_by('-published_date')[:8]
+    news_updates = NewsUpdate.objects.all().order_by('-published_date')[:12]
 
-    students = Student.objects.all() # dispalying list of all doctor in html using for loop
-    teachers = Teacher.objects.all()[:6] # displaying 6 patient in the database
+    students = Student.objects.all() # dispalying list of all students in html using for loop
+    teachers = Teacher.objects.all()[:6] # displaying 6 taechers in the database
     
     # Prepare data for chart
     chart_data = [
@@ -2176,6 +2178,7 @@ def admin_dashboard(request):
         'total_students': sum(counts),
         'latest_year_count': counts[-1] if counts else 0,
         'yearly_data': yearly_data,
+        'active_student_count': active_student_count,
     }
     
     return render(request, 'dashboard/admin_dashboard.html', context)

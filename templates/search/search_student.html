@@ -1,56 +1,89 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 
 {% block content %}
-    <h2>Search Student</h2>
-    <form method="GET">
-        {{ form.as_p }}
-        <button type="submit">Search</button>
-    </form>
+<div class="col-12">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">Search Student</h4>
+
+            <form method="GET" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-8">
+                    {{ form.as_p }}
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     {% if students is not None %}
-        <h3>Search Results:</h3>
-        {% if students %}
-            {% for student in students %}
-                <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px;">
-                    <h3>{{ student.name }} ({{ student.admission_number }})</h3>
-                    <p><strong>Class:</strong> {{ student.current_class }}</p>
-                    <p><strong>Date of Birth:</strong> {{ student.date_of_birth }}</p>
-                    <p><strong>Gender:</strong> {{ student.get_gender_display }}</p>
-                    <p><strong>Admission Date:</strong> {{ student.admission_date }}</p>
-                    <p><strong>Address:</strong> {{ student.address }}</p>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Search Results</h5>
 
-                    <h4>Parent/Guardian Information</h4>
-                    <p><strong>Father's Name:</strong> {{ student.father_name }}</p>
-                    <p><strong>Father's Phone:</strong> {{ student.father_phone }}</p>
-                    <p><strong>Father's Occupation:</strong> {{ student.father_occupation }}</p>
-                    
-                    <p><strong>Mother's Name:</strong> {{ student.mother_name }}</p>
-                    <p><strong>Mother's Phone:</strong> {{ student.mother_phone }}</p>
-                    <p><strong>Mother's Occupation:</strong> {{ student.mother_occupation }}</p>
+                {% if students %}
+                    {% for student in students %}
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">{{ student.name }} <small class="text-muted">({{ student.admission_number }})</small></h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Class:</strong> {{ student.current_class }}</p>
+                                        <p><strong>Date of Birth:</strong> {{ student.date_of_birth }}</p>
+                                        <p><strong>Gender:</strong> {{ student.get_gender_display }}</p>
+                                        <p><strong>Admission Date:</strong> {{ student.admission_date }}</p>
+                                        <p><strong>Address:</strong> {{ student.address }}</p>
+                                    </div>
 
-                    <p><strong>Guardian's Name:</strong> {{ student.guardian_name }}</p>
-                    <p><strong>Guardian's Phone:</strong> {{ student.guardian_phone }}</p>
-                    <p><strong>Guardian's Relationship:</strong> {{ student.guardian_relationship }}</p>
+                                    <div class="col-md-6 mb-3">
+                                        <h6>Parent/Guardian Information</h6>
+                                        <p><strong>Father's Name:</strong> {{ student.father_name }}</p>
+                                        <p><strong>Father's Phone:</strong> {{ student.father_phone }}</p>
+                                        <p><strong>Father's Occupation:</strong> {{ student.father_occupation }}</p>
+                                        <p><strong>Mother's Name:</strong> {{ student.mother_name }}</p>
+                                        <p><strong>Mother's Phone:</strong> {{ student.mother_phone }}</p>
+                                        <p><strong>Mother's Occupation:</strong> {{ student.mother_occupation }}</p>
+                                        <p><strong>Guardian's Name:</strong> {{ student.guardian_name }}</p>
+                                        <p><strong>Guardian's Phone:</strong> {{ student.guardian_phone }}</p>
+                                        <p><strong>Guardian's Relationship:</strong> {{ student.guardian_relationship }}</p>
+                                    </div>
+                                </div>
 
-                    <h4>Emergency Contact</h4>
-                    <p><strong>Name:</strong> {{ student.emergency_contact_name }}</p>
-                    <p><strong>Phone:</strong> {{ student.emergency_contact_phone }}</p>
-                    <p><strong>Relationship:</strong> {{ student.emergency_contact_relationship }}</p>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <h6>Emergency Contact</h6>
+                                        <p><strong>Name:</strong> {{ student.emergency_contact_name }}</p>
+                                        <p><strong>Phone:</strong> {{ student.emergency_contact_phone }}</p>
+                                        <p><strong>Relationship:</strong> {{ student.emergency_contact_relationship }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <h6>Medical Information</h6>
+                                        <p><strong>Blood Group:</strong> {{ student.blood_group }}</p>
+                                        <p><strong>Medical Conditions:</strong> {{ student.medical_conditions }}</p>
+                                    </div>
+                                </div>
 
-                    <h4>Medical Information</h4>
-                    <p><strong>Blood Group:</strong> {{ student.blood_group }}</p>
-                    <p><strong>Medical Conditions:</strong> {{ student.medical_conditions }}</p>
-
-                    <h4>Additional Information</h4>
-                    <p><strong>Previous School:</strong> {{ student.previous_school }}</p>
-                    <p><strong>Remarks:</strong> {{ student.remarks }}</p>
-
-                    <p><strong>Profile Created:</strong> {{ student.created_at }}</p>
-                    <p><strong>Last Updated:</strong> {{ student.updated_at }}</p>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No students found.</p>
-        {% endif %}
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <h6>Additional Information</h6>
+                                        <p><strong>Previous School:</strong> {{ student.previous_school }}</p>
+                                        <p><strong>Remarks:</strong> {{ student.remarks }}</p>
+                                        <p><strong>Profile Created:</strong> {{ student.created_at }}</p>
+                                        <p><strong>Last Updated:</strong> {{ student.updated_at }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No students found.</p>
+                {% endif %}
+            </div>
+        </div>
     {% endif %}
+</div>
 {% endblock %}

@@ -89,9 +89,13 @@ class TermReportingAdmin(admin.ModelAdmin):
         queryset.update(status='LATE')
     mark_as_late.short_description = "Mark selected students as late"
 
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'admission_number', 'current_class', 'is_active', 'admission_date')
+    list_filter = ('is_active', 'current_class')
+    
 admin.site.register(Class_of_study)
 admin.site.register(Subject)
-admin.site.register(Student)
 admin.site.register(Term)
 admin.site.register(CAT)
 

@@ -94,6 +94,21 @@ class Student(models.Model):
         return today.year - self.date_of_birth.year - (
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
+    
+    def years_in_school(self):
+        """Calculate how many years the student has been admitted."""
+        if self.admission_date:
+            today = timezone.now().date()
+            return today.year - self.admission_date.year - (
+                (today.month, today.day) < (self.admission_date.month, self.admission_date.day)
+            )
+        return 0
+    
+    def update_active_status(self):
+        """Update the is_active field based on admission date."""
+        if self.years_in_school() >= 4:
+            self.is_active = False
+            self.save()
 
 class Term(models.Model):
     name = models.CharField(max_length=50)  # Term 1, Term 2, Term 3

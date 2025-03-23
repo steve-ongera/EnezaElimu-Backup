@@ -1,122 +1,120 @@
-
+{% extends 'base/base.html' %}
 {% load school_tags %}
 
-
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-2">{{ class_of_study.name }} - {{ class_of_study.stream }}</h1>
-    <h2 class="text-xl mb-4">{{ term.name }} {{ term.year }}</h2>
-
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300">
-            <thead>
-                <tr class="bg-gray-100">
-                    <th class="border p-2">Position</th>
-                    <th class="border p-2">Student Name</th>
-                    <th class="border p-2">Admission No.</th>
-                    {% for subject in subjects %}
-                        <th colspan="5" class="border p-2 text-center">{{ subject.name }}</th>
-                    {% endfor %}
-                    <th colspan="3" class="border p-2 text-center bg-green-100">Overall Performance</th>
-                </tr>
-                <tr class="bg-gray-50">
-                    <th class="border p-2"></th>
-                    <th class="border p-2"></th>
-                    <th class="border p-2"></th>
-                    {% for subject in subjects %}
-                        <th class="border p-2">CAT1</th>
-                        <th class="border p-2">CAT2</th>
-                        <th class="border p-2">CAT3</th>
-                        <th class="border p-2">AVG</th>
-                        <th class="border p-2">Grade</th>
-                    {% endfor %}
-                    <th class="border p-2 bg-green-50">Average</th>
-                    <th class="border p-2 bg-green-50">Grade</th>
-                    <th class="border p-2 bg-green-50">Remarks</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for student_id, student_data in students.items %}
-                    <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
-                        <td class="border p-2 text-center font-bold">{{ student_data.position_number }}</td>
-                        <td class="border p-2"><a  href="{% url 'student_progress' student_id %}?year={{ term.year }}">{{ student_data.name }}</a></td>
-                        <td class="border p-2">{{ student_data.admission }}</td>
-                        {% for subject in subjects %}
-                            {% with cat_result=students_results|get_item:student_id|get_item:subject.id %}
-                                {% if cat_result %}
-                                    <td class="border p-2 text-center">{{ cat_result.cat1|floatformat:2 }}</td>
-                                    <td class="border p-2 text-center">{{ cat_result.cat2|floatformat:2 }}</td>
-                                    <td class="border p-2 text-center">{{ cat_result.cat3|floatformat:2  }}</td>
-                                    <td class="border p-2 text-center">{{ cat_result.end_term }}</td>
-                                    <td class="border p-2 text-center">{{ cat_result.letter_grade }}</td>
-                                {% else %}
-                                    <td class="border p-2 text-center">-</td>
-                                    <td class="border p-2 text-center">-</td>
-                                    <td class="border p-2 text-center">-</td>
-                                    <td class="border p-2 text-center">-</td>
-                                    <td class="border p-2 text-center">-</td>
-                                {% endif %}
-                            {% endwith %}
-                        {% endfor %}
-                        <td class="border p-2 text-center font-bold bg-green-50">
-                            {{ student_data.average }}
-                        </td>
-                        <td class="border p-2 text-center font-bold bg-green-50">
-                            {{ student_data.grade }}
-                        </td>
-                        <td class="border p-2 text-center bg-green-50">
-                            {{ student_data.position }}
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="{{ subjects|length|multiply:5|add:5 }}" class="border p-4 text-center">
-                            No students found.
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="mt-4">
-        <a href="{% url 'term_list' class_of_study.id %}" 
-           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Back to Terms
-        </a>
-    </div>
-
-    <!-- Add this button next to your "Back to Terms" button in student_list.html -->
-        <div class="mt-4 flex space-x-4">
-           
-            <a href="{% url 'subject_analysis' class_of_study.id term.id %}" 
-            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                View Subject Analysis
-            </a>
-        </div>
-</div>
+{% block content %}
 
 <style>
-    .container {
-        max-width: 100%;
-        overflow-x: auto;
+    /* Super Tiny Table Styling */
+    .super-tiny-table th,
+    .super-tiny-table td {
+        padding: 0.2rem !important;  /* Minimized padding */
+        font-size: 0.45rem;          /* Smaller font size */
+        line-height: 1 !important;   /* Reduced line height */
+        border: 1px solid #dee2e6;   /* Light border */
+        vertical-align: middle !important;
     }
-    table {
+    
+    .super-tiny-table th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+    
+    .super-tiny-table {
         border-collapse: collapse;
         width: 100%;
     }
-    th, td {
-        border: 1px solid #e2e8f0;
-        padding: 8px;
-        font-size: 14px;
+    
+    .super-tiny-table td a {
+        font-size: 0.75rem;  /* Smaller font for links too */
     }
-    th {
-        background-color: #f8fafc;
-        font-weight: bold;
-    }
-    tbody tr:nth-child(even) {
-        background-color: #f8fafc;
-    }
-    tbody tr:hover {
-        background-color: #f1f5f9;
-    }
-</style>
+    
+    </style>
+
+    
+
+<div class="col-12">
+    <div class="card top-selling overflow-auto">
+
+        <!-- Card Body -->
+        <div class="card-body pb-0">
+            <h5 class="card-title">{{ class_of_study.name }} - {{ class_of_study.stream }} | {{ term.name }} {{ term.year }}</h5>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle text-center super-tiny-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Pos</th>
+                            <th scope="col">Student Name</th>
+                            <th scope="col">Adm No.</th>
+                            {% for subject in subjects %}
+                                <th colspan="5">{{ subject.name }}</th>
+                            {% endfor %}
+                            <th colspan="3" class="bg-success text-white">Overall</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            {% for subject in subjects %}
+                                <th>CAT1</th>
+                                <th>CAT2</th>
+                                <th>CAT3</th>
+                                <th>AVG</th>
+                                <th>Grade</th>
+                            {% endfor %}
+                            <th class="bg-success text-white">Avg</th>
+                            <th class="bg-success text-white">Grade</th>
+                            <th class="bg-success text-white">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student_id, student_data in students.items %}
+                        <tr>
+                            <td>{{ student_data.position_number }}</td>
+                            <td>
+                                <a style="font-size: 0.45rem;" href="{% url 'student_progress' student_id %}?year={{ term.year }}">
+                                    {{ student_data.name }}
+                                </a>
+                                
+                            </td>
+                            <td>{{ student_data.admission }}</td>
+                            {% for subject in subjects %}
+                                {% with cat_result=students_results|get_item:student_id|get_item:subject.id %}
+                                    {% if cat_result %}
+                                        <td>{{ cat_result.cat1|floatformat:1 }}</td>
+                                        <td>{{ cat_result.cat2|floatformat:1 }}</td>
+                                        <td>{{ cat_result.cat3|floatformat:1 }}</td>
+                                        <td>{{ cat_result.end_term }}</td>
+                                        <td>{{ cat_result.letter_grade }}</td>
+                                    {% else %}
+                                        <td colspan="5">-</td>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                            <td class="bg-success bg-opacity-10">{{ student_data.average }}</td>
+                            <td class="bg-success bg-opacity-10">{{ student_data.grade }}</td>
+                            <td class="bg-success bg-opacity-10">{{ student_data.position }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{{ subjects|length|multiply:5|add:5 }}" class="text-center text-muted p-2">
+                                No students found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+
+            <!-- Action Buttons -->
+            <div class="mt-3 d-flex gap-2">
+                <a href="{% url 'term_list' class_of_study.id %}" class="btn btn-primary btn-sm">Back to Terms</a>
+                <a href="{% url 'subject_analysis' class_of_study.id term.id %}" class="btn btn-success btn-sm">View Subject Analysis</a>
+            </div>
+
+        </div><!-- End Card Body -->
+
+    </div><!-- End Card -->
+</div><!-- End col-12 -->
+{% endblock %}
