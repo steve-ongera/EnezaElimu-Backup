@@ -1,71 +1,35 @@
-from django.shortcuts import render, get_object_or_404 ,redirect
-from .models import *
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.models import User
-from django.contrib.auth import login
-from .forms import *
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
-from django.db.models import Q
-#emails
-from django.contrib.auth import get_user_model, authenticate, login
-from django.core.mail import EmailMultiAlternatives
-from django.utils.http import urlsafe_base64_encode
+from django.contrib import messages
+from django.core.mail import EmailMultiAlternatives, send_mail
+from django.core.cache import cache
+from django.utils import timezone
+from django.utils.encoding import force_bytes, force_str
 from django.utils.html import strip_tags
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
 from django.views import View
 from django.conf import settings
-from django.utils.http import urlsafe_base64_decode
-from django.utils.encoding import force_str  # use force_str instead of force_text
-Account = get_user_model()
-from django.db.models import Avg, Sum, Count, Q
-from django.http import HttpResponse, JsonResponse
-from django.http import HttpResponseForbidden
-from datetime import date
-from django.utils import timezone
-import datetime
-from datetime import datetime
-from django.utils import timezone
-from datetime import timedelta
-from django.db.models import Sum
-from django.db.models import Max
-from django.shortcuts import render
-from django.db.models import Avg, Count, F, Q
-from django.db.models.functions import Coalesce
-from django.core.cache import cache
+from django.db.models import Avg, Sum, Max, Count, F, Q, Prefetch
+from django.db.models.functions import Coalesce, ExtractYear
+from django.db.models import functions
+from django.db.models import Case, When
+from django.db import models
+from datetime import date, timedelta, datetime
 from collections import defaultdict
-
-from django.shortcuts import render
-from django.db.models import Avg, Count, F, Prefetch, Q
-from django.db.models.functions import Coalesce
-from django.core.cache import cache
-from django.conf import settings
-
-from django.shortcuts import render
-from django.db.models import Avg, Count, F, Q
-from django.db.models.functions import Coalesce
-from django.core.cache import cache
-from collections import defaultdict
-
-
-
-from django.db.models import Count
 import json
-from django.db.models import Count
-from django.db.models.functions import ExtractYear
 
+from .models import *
+from .forms import *
 
+from django.contrib.auth import get_user_model
+Account = get_user_model()
 
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.utils import timezone
 
 def register(request):
     if request.method == "POST":
