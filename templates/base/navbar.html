@@ -108,7 +108,12 @@
                 <li class="message-item">
                     {% if message.sender and message.sender.username %}
                         <a href="{% url 'create_chat' message.sender.username %}">
+                          {% if message.sender.profile.profile_pic %}
                             <img src="{{ message.sender.profile.profile_pic.url }}" alt="{{ message.sender.username }}" class="rounded-circle">
+                          {% else %}
+                            <img src="{% static 'assets/img/profile.png' %}" alt="{{ message.sender.username }}" class="rounded-circle">
+                          {% endif %}
+                          
                             <div>
                                 <h4>{{ message.sender.username }}</h4>
                                 <p>{{ message.content|truncatechars:50 }}</p>
@@ -148,7 +153,7 @@
             <li class="dropdown-header">
               {% if user.is_authenticated %}
                 <h6>{{ user.username }}</h6>
-                <span>{{ user.first_name }}</span>
+                <span>{{ user.first_name }} {{ user.last_name }}</span>
             {% else %}
                 <h6>Guest</h6>
                 <span>Welcome</span>

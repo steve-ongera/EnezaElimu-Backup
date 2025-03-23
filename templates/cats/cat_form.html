@@ -9,14 +9,27 @@
               {% csrf_token %}
               
               <div class="row g-3">
-                  <!-- Student Field -->
+                  <!-- Student Search Field -->
+                  <div class="col-md-12">
+                      <label for="student-search" class="form-label">Search by Admission Number</label>
+                      <input type="text" id="student-search" class="form-control" placeholder="Enter Admission Number">
+
+                  </div>
+
+                  <!-- Subject Field -->
                   <div class="col-md-6">
-                      <label for="{{ form.student.id_for_label }}" class="form-label">Student</label>
-                      {{ form.student }}
+                    
+                      <!-- Hidden field to store selected student ID -->
+                      <input type="hidden" name="student" id="student-id">
+
+                      <!-- Display Student Name after selection -->
+                      <label for="student-name" class="form-label mt-2">Student Name</label>
+                      <input type="text" id="student-name" class="form-control" readonly>
+
                       <div class="text-danger">
                           {{ form.student.errors }}
                       </div>
-                  </div>
+                </div>
 
                   <!-- Subject Field -->
                   <div class="col-md-6">
@@ -71,4 +84,23 @@
           </form>
       </div>
   </div>
+
+  <!-- jQuery & jQuery UI -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+  <script>
+    $(function() {
+        $("#student-search").autocomplete({
+            source: "{% url 'student_search' %}",  // AJAX endpoint
+            minLength: 2,
+            select: function(event, ui) {
+                $("#student-id").val(ui.item.id);  // Save student ID
+                $("#student-name").val(ui.item.name);  // Display student name
+            }
+        });
+    });
+  </script>
+
 {% endblock %}

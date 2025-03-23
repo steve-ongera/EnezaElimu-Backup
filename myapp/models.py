@@ -72,6 +72,9 @@ class Student(models.Model):
     blood_group = models.CharField(max_length=5, null=True, blank=True)
     medical_conditions = models.TextField(null=True, blank=True)
     previous_school = models.CharField(max_length=200, null=True, blank=True)
+
+    # Active/Inactive Status Field
+    is_active = models.BooleanField(default=True)
     remarks = models.TextField(null=True, blank=True)
 
     # Timestamps
@@ -424,7 +427,8 @@ class Message(models.Model):
     pdf = models.FileField(upload_to='pdfs/', blank=True, null=True)
 
     def __str__(self):
-        return f'Message from {self.sender.username} to {self.receiver.username}'
+           return f'{self.sender.username} → {self.receiver.username}'
+
     
 
 

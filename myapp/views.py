@@ -1231,17 +1231,40 @@ def cat_list(request):
     return render(request, 'cats/cat_list.html', {'cats': cats})
 
 
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def student_search(request):
+    if request.method == 'GET':
+        query = request.GET.get('term', '')
+        students = Student.objects.filter(admission_number__icontains=query)[:10]
+        results = []
+        for student in students:
+            results.append({
+                'id': student.id,
+                'label': f"{student.admission_number} - {student.name}",  # What appears in dropdown
+                'value': student.admission_number,  # Filled into search box
+                'name': student.name  # Sent back to display student's name
+            })
+        return JsonResponse(results, safe=False)
+
+
 @login_required
-# Create a new CAT record
 def cat_create(request):
     if request.method == 'POST':
         form = CATForm(request.POST)
         if form.is_valid():
-            form.save()
+            cat = form.save(commit=False)
+            student_id = request.POST.get('student')
+            if student_id:
+                cat.student_id = student_id
+            cat.save()
             return redirect('cat_create')
     else:
         form = CATForm()
     return render(request, 'cats/cat_form.html', {'form': form})
+
+
 
 
 @login_required
@@ -2057,7 +2080,7 @@ def student_results(request):
 
 #admin dashboard
 import json
-
+from django.contrib import messages as flash_messages
 @login_required
 def admin_dashboard(request):
     # Get student counts grouped by year
