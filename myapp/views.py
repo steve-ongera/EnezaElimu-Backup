@@ -955,7 +955,6 @@ def student_list(request, class_id, term_id):
 
 
 
-
 @login_required
 def subject_analysis(request, class_id, term_id):
     class_of_study = get_object_or_404(Class_of_study, id=class_id)
@@ -966,19 +965,29 @@ def subject_analysis(request, class_id, term_id):
     subject_averages = {}
     for subject in subjects:
         cats = CAT.objects.filter(
-            student__current_class=class_of_study,
+            class_of_study=class_of_study,  # Changed from student__current_class
             term=term,
             subject=subject
         )
         if cats.exists():
             total_score = sum(cat.end_term for cat in cats)
             average = round(total_score / cats.count(), 2)
-            subject_averages[subject.name] = average
+            
+            # Additional analysis
+            highest_score = max(cat.end_term for cat in cats)
+            lowest_score = min(cat.end_term for cat in cats)
+            
+            subject_averages[subject.name] = {
+                'average': average,
+                'highest_score': highest_score,
+                'lowest_score': lowest_score,
+                'total_students': cats.count()
+            }
     
     # Sort subjects by average score
     sorted_subjects = dict(sorted(
         subject_averages.items(), 
-        key=lambda x: x[1], 
+        key=lambda x: x[1]['average'], 
         reverse=True
     ))
     
@@ -987,8 +996,6 @@ def subject_analysis(request, class_id, term_id):
         'term': term,
         'subject_averages': sorted_subjects
     })
-
-
 
 
 @login_required
@@ -1450,7 +1457,7 @@ def student_rankings(request):
     # Prefetch related CAT data
     cat_prefetch = Prefetch(
         'cats',
-        queryset=CAT.objects.select_related('subject')
+        queryset=CAT.objects.select_related('subject', 'class_of_study')
     )
     
     rankings = []
@@ -1459,9 +1466,9 @@ def student_rankings(request):
         # Base query with prefetch
         base_query = Student.objects.prefetch_related(cat_prefetch).filter(cats__term=term)
         
-        # Apply class filter if selected
+        # Apply class filter using class_of_study instead of current_class
         if selected_class:
-            base_query = base_query.filter(current_class_id=selected_class)
+            base_query = base_query.filter(cats__class_of_study_id=selected_class)
         
         # Optimize student query with annotations and prefetch_related
         student_rankings = (
@@ -1478,7 +1485,7 @@ def student_rankings(request):
                 )
             )
             .filter(subjects_count__gt=0)
-            .select_related('current_class')  # Add any other needed related fields
+            .select_related('current_class')
             .order_by('-average_score')
         ).distinct()
         
@@ -1493,7 +1500,8 @@ def student_rankings(request):
             # Get subject grades efficiently using prefetched data
             subject_grades = [
                 cat for cat in student.cats.all()
-                if cat.term_id == term.id
+                if cat.term_id == term.id and 
+                   (not selected_class or cat.class_of_study_id == int(selected_class))
             ]
             
             student_data = {
@@ -1508,7 +1516,7 @@ def student_rankings(request):
             
             term_results['students'].append(student_data)
             
-            # Process in chunks to free up memory
+            # Process in chunks to reduce memory usage
             if len(term_results['students']) >= CHUNK_SIZE:
                 rankings.append(term_results)
                 term_results = {
@@ -1523,16 +1531,17 @@ def student_rankings(request):
         'rankings': rankings,
         'available_years': available_years,
         'available_terms': available_terms,
-        'available_classes': available_classes,  # Pass available classes to template
+        'available_classes': available_classes,
         'selected_year': selected_year,
         'selected_term': selected_term,
-        'selected_class': selected_class,  # Pass selected class to template
+        'selected_class': selected_class,
     }
     
     # Cache the results
     cache.set(cache_key, context, timeout=3600)  # Cache for 1 hour
     
     return render(request, 'rankings/student_rankings.html', context)
+
 
 def _calculate_overall_grade(gpa):
     """Helper function to calculate overall grade"""

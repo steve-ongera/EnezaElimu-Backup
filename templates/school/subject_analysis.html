@@ -1,13 +1,15 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-
-
-
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
 <div class="container mx-auto p-4">
     <h1 class="text-2xl font-bold mb-2">Subject Performance Analysis</h1>
     <h2 class="text-xl mb-4">{{ class_of_study.name }} - {{ class_of_study.stream }} | {{ term.name }} {{ term.year }}</h2>
 
     <div class="container">
-       
         <div style="width: 800px; height: 400px;">
             <canvas id="subjectChart"></canvas>
         </div>
@@ -21,13 +23,19 @@
                 <tr class="bg-gray-100">
                     <th class="border p-2">Subject</th>
                     <th class="border p-2">Class Average</th>
+                    <th class="border p-2">Highest Score</th>
+                    <th class="border p-2">Lowest Score</th>
+                    <th class="border p-2">Total Students</th>
                 </tr>
             </thead>
             <tbody>
-                {% for subject, average in subject_averages.items %}
+                {% for subject, data in subject_averages.items %}
                 <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
                     <td class="border p-2">{{ subject }}</td>
-                    <td class="border p-2 text-center">{{ average }}</td>
+                    <td class="border p-2 text-center">{{ data.average }}</td>
+                    <td class="border p-2 text-center">{{ data.highest_score }}</td>
+                    <td class="border p-2 text-center">{{ data.lowest_score }}</td>
+                    <td class="border p-2 text-center">{{ data.total_students }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -42,63 +50,60 @@
     </div>
 </div>
 
-
+<script>
+    // Get the data from Django context
+    const subjectData = {{ subject_averages|safe }};
     
+    // Prepare data for chart
+    const labels = Object.keys(subjectData);
+    const values = labels.map(subject => subjectData[subject].average);
 
-    <script>
-        // Get the data from Django context
-        const subjectData = {{ subject_averages|safe }};
-        
-        // Rest of your JavaScript code remains the same
-        const labels = Object.keys(subjectData);
-        const values = Object.values(subjectData);
-
-        const ctx = document.getElementById('subjectChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Average Score',
-                    data: values,
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Average Score'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Subjects'
-                        }
-                    }
-                },
-                plugins: {
+    const ctx = document.getElementById('subjectChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Average Score',
+                data: values,
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
                     title: {
                         display: true,
-                        text: 'Subject Performance Analysis',
-                        font: {
-                            size: 16
-                        }
-                    },
-                    legend: {
-                        position: 'top'
+                        text: 'Average Score'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Subjects'
                     }
                 }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Subject Performance Analysis',
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    position: 'top'
+                }
             }
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 </html>
