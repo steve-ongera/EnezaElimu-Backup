@@ -94,10 +94,79 @@ class StudentAdmin(admin.ModelAdmin):
     list_display = ('name', 'admission_number', 'current_class', 'is_active', 'admission_date')
     list_filter = ('is_active', 'current_class')
     
+from django.contrib import admin
+from django import forms
+from .models import CAT, Student, Subject, Term, Class_of_study
+
+# Custom form for CATAdmin
+class CATForm(forms.ModelForm):
+    class Meta:
+        model = CAT
+        fields = '__all__'
+        widgets = {
+            'cat1': forms.NumberInput(attrs={'size': '4', 'style': 'width: 60px; text-align:center;'}),
+            'cat2': forms.NumberInput(attrs={'size': '4', 'style': 'width: 60px; text-align:center;'}),
+            'cat3': forms.NumberInput(attrs={'size': '4', 'style': 'width: 60px; text-align:center;'}),
+            'student': forms.Select(attrs={'style': 'width: 250px;'}),
+            'subject': forms.Select(attrs={'style': 'width: 180px;'}),
+            'term': forms.Select(attrs={'style': 'width: 150px;'}),
+        }
+
+from django.utils.html import format_html
+from .models import CAT, Student, Subject, Term, Class_of_study
+
+@admin.register(CAT)
+class CATAdmin(admin.ModelAdmin):
+    list_display = (
+        'student', 'subject', 'term', 'class_of_study',
+        'formatted_cat1', 'formatted_cat2', 'formatted_cat3', 
+        'formatted_end_term', 'formatted_grade_points', 
+        'letter_grade', 
+    )
+    list_filter = ('class_of_study', 'term', 'subject', 'letter_grade', 'position')
+    search_fields = ('student__name', 'student__admission_number', 'subject__name', 'term__name')
+    readonly_fields = ('end_term', 'grade_points', 'letter_grade', 'position')
+    
+
+    fieldsets = (
+        ('Student & Class Info', {
+            'fields': ('student', 'class_of_study', 'subject', 'term')
+        }),
+        ('CAT Scores', {
+            'fields': ('cat1', 'cat2', 'cat3')
+        }),
+        ('Result Summary (Auto Calculated)', {
+            'fields': ('end_term', 'grade_points', 'letter_grade', 'position')
+        }),
+    )
+
+    # Custom methods to format float fields to 2 decimal places:
+    def formatted_cat1(self, obj):
+        return f"{obj.cat1:.2f}"
+    formatted_cat1.short_description = 'CAT 1'
+
+    def formatted_cat2(self, obj):
+        return f"{obj.cat2:.2f}"
+    formatted_cat2.short_description = 'CAT 2'
+
+    def formatted_cat3(self, obj):
+        return f"{obj.cat3:.2f}"
+    formatted_cat3.short_description = 'CAT 3'
+
+    def formatted_end_term(self, obj):
+        return f"{obj.end_term:.2f}"
+    formatted_end_term.short_description = 'End Term'
+
+    def formatted_grade_points(self, obj):
+        return f"{obj.grade_points:.2f}"
+    formatted_grade_points.short_description = 'Grade Points'
+
+
+
 admin.site.register(Class_of_study)
 admin.site.register(Subject)
 admin.site.register(Term)
-admin.site.register(CAT)
+
 
 
 admin.site.register(Staff)

@@ -128,6 +128,9 @@ class CAT(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='cats')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     term = models.ForeignKey(Term, on_delete=models.CASCADE)
+
+    class_of_study = models.ForeignKey(Class_of_study, on_delete=models.SET_NULL, null=True, blank=True)
+
     cat1 = models.FloatField(default=0)
     cat2 = models.FloatField(default=0)
     cat3 = models.FloatField(default=0)
@@ -187,7 +190,9 @@ class CAT(models.Model):
             return "Fail"
 
     def save(self, *args, **kwargs):
-        # Calculate and store all values before saving
+        # Set class_of_study if not set yet
+        if not self.class_of_study:
+            self.class_of_study = self.student.current_class
         self.end_term = self.calculate_end_term()
         self.grade_points, self.letter_grade = self.assign_grade_points()
         self.position = self.determine_position()

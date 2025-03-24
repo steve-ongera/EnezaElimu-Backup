@@ -887,37 +887,39 @@ def term_list(request, class_id):
 
 
 @login_required
-#student list in certain term year and stream
 def student_list(request, class_id, term_id):
     class_of_study = get_object_or_404(Class_of_study, id=class_id)
     term = get_object_or_404(Term, id=term_id)
-    students = Student.objects.filter(current_class=class_of_study)
     subjects = Subject.objects.all()
     
-    # Create a nested dictionary for easy access to results
+    # Get all CAT records for that class and term
+    cats = CAT.objects.filter(term=term, class_of_study=class_of_study)
+    
+    # Extract unique students from those CAT records
+    students = Student.objects.filter(id__in=cats.values_list('student_id', flat=True).distinct())
+    
+    # Create nested dicts
     students_results = {}
     student_averages = {}
     
     for student in students:
+        student_cats = cats.filter(student=student)
         students_results[student.id] = {}
-        cats = CAT.objects.filter(student=student, term=term)
+        
         total_score = 0
         valid_subjects = 0
         
-        for cat in cats:
+        for cat in student_cats:
             students_results[student.id][cat.subject.id] = cat
             total_score += cat.end_term
             valid_subjects += 1
         
-        # Calculate average and grade for student
+        # Calculate average and grade
         if valid_subjects > 0:
             term_average = round(total_score / valid_subjects, 2)
-            
-            # Create a temporary CAT instance to use the grading methods
             temp_cat = CAT(cat1=term_average, cat2=term_average, cat3=term_average)
             temp_cat.end_term = term_average
             
-            # Use the existing methods
             grade_points, letter_grade = temp_cat.assign_grade_points()
             position = temp_cat.determine_position()
             
@@ -930,7 +932,7 @@ def student_list(request, class_id, term_id):
                 'admission': student.admission_number
             }
     
-    # Sort students by average score (descending)
+    # Sort by average
     sorted_students = dict(sorted(
         student_averages.items(), 
         key=lambda x: x[1]['average'], 
@@ -950,6 +952,7 @@ def student_list(request, class_id, term_id):
         'subjects': subjects,
         'students_results': students_results,
     })
+
 
 
 
