@@ -1358,9 +1358,7 @@ def student_population_graph(request):
     
     return render(request, 'graph/population_graph.html', context)
 
-
 @login_required
-#view for students who sat for cat that year
 def class_distribution_view(request):
     # Get all available years from Term model
     available_years = Term.objects.values_list('year', flat=True).distinct().order_by('-year')
@@ -1368,32 +1366,32 @@ def class_distribution_view(request):
     # Get the selected year (default to latest year if none selected)
     selected_year = request.GET.get('year', available_years.first())
     
-    # Get students who have CATs in the selected year
-    students_in_year = CAT.objects.filter(
+    # Get students who have CATs in the selected year, grouped by their previous class
+    previous_class_distribution = CAT.objects.filter(
         term__year=selected_year
-    ).values_list('student', flat=True).distinct()
-    
-    # Get the count of students in each class and stream for the selected year
-    class_distribution = Class_of_study.objects.annotate(
-        student_count=Count(
-            'students',
-            filter=Q(students__id__in=students_in_year),
-            distinct=True
-        )
-    ).values('name', 'stream', 'student_count').order_by('name', 'stream')
+    ).values(
+        'class_of_study__name', 
+        'class_of_study__stream'
+    ).annotate(
+        student_count=Count('student', distinct=True)
+    ).order_by('class_of_study__name', 'class_of_study__stream')
     
     # Prepare data for the chart
     classes = []
     counts = []
     labels = []
     
-    for item in class_distribution:
-        classes.append(item['name'])
-        counts.append(item['student_count'])
-        labels.append(f"{item['name']} - {item['stream']}")
+    for item in previous_class_distribution:
+        class_name = item['class_of_study__name']
+        stream = item['class_of_study__stream']
+        count = item['student_count']
+        
+        classes.append(class_name)
+        counts.append(count)
+        labels.append(f"{class_name} - {stream}")
     
     context = {
-        'class_distribution': class_distribution,
+        'class_distribution': previous_class_distribution,
         'classes': classes,
         'counts': counts,
         'labels': labels,
@@ -1402,7 +1400,6 @@ def class_distribution_view(request):
     }
     
     return render(request, 'graph/class_distribution.html', context)
-
 
 @login_required
 @user_passes_test(is_staff_user)

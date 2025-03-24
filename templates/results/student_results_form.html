@@ -1,182 +1,101 @@
-{% extends 'base/base.html' %}
+{% extends "base/base.html" %}
 
 {% block content %}
-<style>
-    /* General Container */
-.results-container {
-    background-color: #f9fafb;
-    min-height: 100vh;
-    padding: 2rem;
-}
 
-/* Card Styling */
-.results-card {
-    max-width: 700px;
-    margin: auto;
-    background-color: white;
-    padding: 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
+<div class="pagetitle">
+    <h1>Student Results Portal</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
+            <li class="breadcrumb-item active">Results Portal</li>
+        </ol>
+    </nav>
+</div><!-- End Page Title -->
 
-/* Heading */
-.results-title {
-    font-size: 2rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #1f2937;
-}
+<section class="section">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
 
-/* Form Labels */
-.results-form label {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.25rem;
-}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">📊 Student Results Portal</h5>
 
-/* Form Inputs */
-.results-form input,
-.results-form select {
-    width: 100%;
-    border: 1px solid #d1d5db;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    margin-top: 0.25rem;
-    margin-bottom: 1rem;
-}
+                    <!-- Result Search Form -->
+                    <form method="POST" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-12">
+                            <label for="admission_number" class="form-label">Admission Number</label>
+                            <input type="text" class="form-control" name="admission_number" id="admission_number" required>
+                        </div>
 
-/* Submit Button */
-.results-form button {
-    width: 100%;
-    background: linear-gradient(to right, #3b82f6, #2563eb);
-    color: white;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    transition: background 0.3s ease;
-}
+                        <div class="col-md-6">
+                            <label for="year" class="form-label">Year</label>
+                            <select name="year" id="year" class="form-select" required>
+                                {% for year in "2020"|rjust:"5" %}
+                                    <option value="{{ forloop.counter|add:2019 }}">{{ forloop.counter|add:2019 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-.results-form button:hover {
-    background: linear-gradient(to right, #2563eb, #1d4ed8);
-}
+                        <div class="col-md-6">
+                            <label for="term" class="form-label">Term</label>
+                            <select name="term" id="term" class="form-select" required>
+                                <option value="Term 1">Term 1</option>
+                                <option value="Term 2">Term 2</option>
+                                <option value="Term 3">Term 3</option>
+                            </select>
+                        </div>
 
-/* Table Styling */
-.results-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-}
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary w-100">🔍 View Results</button>
+                        </div>
+                    </form>
 
-.results-table th,
-.results-table td {
-    padding: 0.75rem;
-    text-align: center;
-    border-bottom: 1px solid #e5e7eb;
-}
+                    <!-- Results Display -->
+                    {% if show_results %}
+                    <div class="mt-4">
+                        <h6 class="text-center fw-bold">📄 Results for {{ student.name }}</h6>
+                        <p class="text-center text-muted mb-3">Term: <strong>{{ term.name }} {{ term.year }}</strong></p>
 
-.results-table th {
-    background-color: #dbeafe;
-    color: #374151;
-    font-weight: 600;
-    text-transform: uppercase;
-}
+                        <div class="table-responsive">
+                            <table class="table table-bordered text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>CAT 1</th>
+                                        <th>CAT 2</th>
+                                        <th>CAT 3</th>
+                                        <th>Average</th>
+                                        <th>Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in results %}
+                                    <tr>
+                                        <td>{{ result.subject.name }}</td>
+                                        <td>{{ result.cat1 }}</td>
+                                        <td>{{ result.cat2 }}</td>
+                                        <td>{{ result.cat3 }}</td>
+                                        <td>{{ result.end_term }}</td>
+                                        <td>{{ result.letter_grade }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
 
-.results-table tr:hover {
-    background-color: #f9fafb;
-}
+                        <div class="mt-4 p-3 bg-light rounded text-center">
+                            <p class="fw-semibold mb-2">📊 Overall Average: <span class="text-primary">{{ overall_average }}%</span></p>
+                            <p class="fw-semibold">🎓 GPA: <span class="text-primary">{{ gpa }}</span></p>
+                        </div>
+                    </div>
+                    {% endif %}
 
-.overall-container {
-    margin-top: 1.5rem;
-    background-color: #f3f4f6;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    text-align: center;
-}
-
-.overall-container p {
-    font-weight: 600;
-    color: #374151;
-    margin: 0.5rem 0;
-}
-
-.overall-container span {
-    color: #2563eb;
-}
-</style>
-<div class="results-container">
-    <div class="results-card">
-        <h2 class="results-title">📊 Student Results Portal</h2>
-
-        <!-- Result Search Form -->
-        <form method="POST" class="results-form">
-            {% csrf_token %}
-
-            <div>
-                <label for="admission_number">Admission Number</label>
-                <input type="text" name="admission_number" id="admission_number" required>
-            </div>
-
-            <div>
-                <label for="year">Year</label>
-                <select name="year" id="year" required>
-                    {% for year in "2020"|rjust:"5" %}
-                        <option value="{{ forloop.counter|add:2019 }}">{{ forloop.counter|add:2019 }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div>
-                <label for="term">Term</label>
-                <select name="term" id="term" required>
-                    <option value="Term 1">Term 1</option>
-                    <option value="Term 2">Term 2</option>
-                    <option value="Term 3">Term 3</option>
-                </select>
-            </div>
-
-            <button type="submit">🔍 View Results</button>
-        </form>
-
-        <!-- Results Display -->
-        {% if show_results %}
-            <div class="mt-10">
-                <h3 class="text-xl font-bold mb-4 text-gray-800">📄 Results for {{ student.name }}</h3>
-                <p class="text-gray-600 mb-4">Term: <strong>{{ term.name }} {{ term.year }}</strong></p>
-
-                <table class="results-table">
-                    <thead>
-                        <tr>
-                            <th>Subject</th>
-                            <th>CAT 1</th>
-                            <th>CAT 2</th>
-                            <th>CAT 3</th>
-                            <th>Average</th>
-                            <th>Grade</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for result in results %}
-                            <tr>
-                                <td>{{ result.subject.name }}</td>
-                                <td>{{ result.cat1 }}</td>
-                                <td>{{ result.cat2 }}</td>
-                                <td>{{ result.cat3 }}</td>
-                                <td>{{ result.end_term }}</td>
-                                <td>{{ result.letter_grade }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <div class="overall-container">
-                    <p>📊 Overall Average: <span>{{ overall_average }}%</span></p>
-                    <p>🎓 GPA: <span>{{ gpa }}</span></p>
                 </div>
             </div>
-        {% endif %}
+
+        </div>
     </div>
-</div>
+</section>
+
 {% endblock %}

@@ -1,43 +1,59 @@
-{% extends 'base/base.html' %}
+{% extends "base/base.html" %}
 
 {% block content %}
-<div class="col-12">
-    <div class="card top-selling overflow-auto">
 
+<div class="pagetitle">
+    <h1>Class List (Streams)</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
+            <li class="breadcrumb-item active">Class List</li>
+        </ol>
+    </nav>
+</div><!-- End Page Title -->
 
-        <!-- Card Body -->
-        <div class="card-body pb-0">
-            <h5 class="card-title">Class List (Streams) </h5>
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
 
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Class Name</th>
-                        <th scope="col">Stream</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for class in classes %}
-                    <tr>
-                        <th scope="row">{{ forloop.counter }}</th>
-                        <td>{{ class.name }}</td>
-                        <td>{{ class.stream }}</td>
-                        <td>
-                            <a href="{% url 'term_list' class.id %}" class="text-primary">View Terms</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center text-muted">No classes found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <!-- Class List Card -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Class List (Streams)</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Class Name</th>
+                                    <th>Stream</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for class in classes %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ class.name }}</td>
+                                    <td>{{ class.stream }}</td>
+                                    <td>
+                                        <a href="{% url 'term_list' class.id %}" class="btn btn-sm btn-primary">View Terms</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No classes found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- End Class List Card -->
 
-        </div><!-- End Card Body -->
+        </div>
+    </div>
+</section>
 
-    </div><!-- End Card -->
-</div><!-- End col-12 -->
 {% endblock %}

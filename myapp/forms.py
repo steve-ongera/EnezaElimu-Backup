@@ -175,7 +175,15 @@ class CATForm(forms.ModelForm):
 
 
 class StudentSearchForm(forms.Form):
-    query = forms.CharField(label="Search Student", max_length=100, required=False)
+    query = forms.CharField(
+        label="Search Student",
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter student name, admission number, or class...'
+        })
+    )
 
 
 
