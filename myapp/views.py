@@ -1550,7 +1550,6 @@ def _calculate_overall_grade(gpa):
         return 'C'
     return 'F'
 
-
 @login_required
 @user_passes_test(is_staff_user)
 def form_rankings(request):
@@ -1588,7 +1587,7 @@ def form_rankings(request):
     # Prefetch related CAT data
     cat_prefetch = Prefetch(
         'cats',
-        queryset=CAT.objects.select_related('subject')
+        queryset=CAT.objects.select_related('subject', 'class_of_study')
     )
     
     form_rankings = []
@@ -1597,9 +1596,9 @@ def form_rankings(request):
         # Base query with prefetch
         base_query = Student.objects.prefetch_related(cat_prefetch).filter(cats__term=term)
         
-        # Apply form filter if selected
+        # Apply form filter if selected - now using CAT's class_of_study
         if selected_form:
-            base_query = base_query.filter(current_class__name=selected_form)
+            base_query = base_query.filter(cats__class_of_study__name=selected_form)
         
         # Optimize student query with annotations and prefetch_related
         student_rankings = (
@@ -1632,7 +1631,8 @@ def form_rankings(request):
             # Get subject grades efficiently using prefetched data
             subject_grades = [
                 cat for cat in student.cats.all()
-                if cat.term_id == term.id
+                if cat.term_id == term.id and 
+                   (not selected_form or cat.class_of_study.name == selected_form)
             ]
             
             student_data = {
