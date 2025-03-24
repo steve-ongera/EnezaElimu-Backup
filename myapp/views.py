@@ -30,6 +30,12 @@ from .forms import *
 from django.contrib.auth import get_user_model
 Account = get_user_model()
 
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+# Check if user is staff
+def is_staff_user(user):
+    return user.is_staff
+
 
 def register(request):
     if request.method == "POST":
@@ -336,6 +342,7 @@ def student_dashboard(request):
 
 
 @login_required
+@user_passes_test(is_staff_user)
 def general_student_list(request):
     students = Student.objects.all()
     return render(request, 'students/student_list.html', {'students': students})
@@ -857,7 +864,7 @@ def download_term_report(request, student_id, term_id):
 
 
 @login_required
-#list all classes which pertifipated in examinations
+@user_passes_test(is_staff_user)
 def class_lists(request):
     classes = Class_of_study.objects.all().order_by('name', 'stream')
     return render(request, 'school/class_list.html', {
@@ -866,7 +873,7 @@ def class_lists(request):
 
 
 @login_required
-#terms in the examination session 
+@user_passes_test(is_staff_user)
 def term_list(request, class_id):
     class_of_study = get_object_or_404(Class_of_study, id=class_id)
     terms = Term.objects.filter(
@@ -1015,14 +1022,14 @@ def edit_student_profile(request):
 
 
 @login_required
-# List all classes
+@user_passes_test(is_staff_user)
 def class_list(request):
     classes = Class_of_study.objects.all()
     return render(request, 'class/class_list.html', {'classes': classes})
 
 
 @login_required
-# Create a new class
+@user_passes_test(is_staff_user)
 def class_create(request):
     if request.method == 'POST':
         form = ClassForm(request.POST)
@@ -1035,14 +1042,14 @@ def class_create(request):
 
 
 @login_required
-# View class details
+@user_passes_test(is_staff_user)
 def class_detail(request, pk):
     class_instance = get_object_or_404(Class_of_study, pk=pk)
     return render(request, 'class/class_detail.html', {'class_instance': class_instance})
 
 
 @login_required
-# Update a class
+@user_passes_test(is_staff_user)
 def class_update(request, pk):
     class_instance = get_object_or_404(Class_of_study, pk=pk)
     if request.method == 'POST':
@@ -1056,7 +1063,7 @@ def class_update(request, pk):
 
 
 @login_required
-# Delete a class
+@user_passes_test(is_staff_user)
 def class_delete(request, pk):
     class_instance = get_object_or_404(Class_of_study, pk=pk)
     if request.method == 'POST':
@@ -1069,14 +1076,14 @@ def class_delete(request, pk):
 
 
 @login_required
-# List all subjects
+@user_passes_test(is_staff_user)
 def subject_list(request):
     subjects = Subject.objects.all()
     return render(request, 'subject/subject_list.html', {'subjects': subjects})
 
 
 @login_required
-# Create a new subject
+@user_passes_test(is_staff_user)
 def subject_create(request):
     if request.method == 'POST':
         form = SubjectForm(request.POST)
@@ -1089,14 +1096,14 @@ def subject_create(request):
 
 
 @login_required
-# View subject details
+@user_passes_test(is_staff_user)
 def subject_detail(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     return render(request, 'subject/subject_detail.html', {'subject': subject})
 
 
 @login_required
-# Update an existing subject
+@user_passes_test(is_staff_user)
 def subject_update(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     if request.method == 'POST':
@@ -1110,7 +1117,7 @@ def subject_update(request, pk):
 
 
 @login_required
-# Delete a subject
+@user_passes_test(is_staff_user)
 def subject_delete(request, pk):
     subject = get_object_or_404(Subject, pk=pk)
     if request.method == 'POST':
@@ -1120,14 +1127,14 @@ def subject_delete(request, pk):
 
 
 @login_required
-# List all students
+@user_passes_test(is_staff_user)
 def students_list(request):
     students = Student.objects.all()
     return render(request, 'students/database_student_list.html', {'students': students})
 
 
 @login_required
-# Create a new student
+@user_passes_test(is_staff_user)
 def student_create(request):
     if request.method == 'POST':
         form = StudentForm(request.POST)
@@ -1140,14 +1147,14 @@ def student_create(request):
 
 
 @login_required
-# View student details
+@user_passes_test(is_staff_user)
 def student_detail(request, pk):
     student = get_object_or_404(Student, pk=pk)
     return render(request, 'students/student_detail.html', {'student': student})
 
 
 @login_required
-# Update an existing student
+@user_passes_test(is_staff_user)
 def student_update(request, pk):
     student = get_object_or_404(Student, pk=pk)
     if request.method == 'POST':
@@ -1161,7 +1168,7 @@ def student_update(request, pk):
 
 
 @login_required
-# Delete a student
+@user_passes_test(is_staff_user)
 def student_delete(request, pk):
     student = get_object_or_404(Student, pk=pk)
     if request.method == 'POST':
@@ -1172,14 +1179,14 @@ def student_delete(request, pk):
 
 
 @login_required
-# List all terms
+@user_passes_test(is_staff_user)
 def term_lists(request):
     terms = Term.objects.all()
     return render(request, 'terms/term_list.html', {'terms': terms})
 
 
 @login_required
-# Create a new term
+@user_passes_test(is_staff_user)
 def term_create(request):
     if request.method == 'POST':
         form = TermForm(request.POST)
@@ -1192,14 +1199,14 @@ def term_create(request):
 
 
 @login_required
-# View term details
+@user_passes_test(is_staff_user)
 def term_detail(request, pk):
     term = get_object_or_404(Term, pk=pk)
     return render(request, 'terms/term_detail.html', {'term': term})
 
 
 @login_required
-# Update an existing term
+@user_passes_test(is_staff_user)
 def term_update(request, pk):
     term = get_object_or_404(Term, pk=pk)
     if request.method == 'POST':
@@ -1213,7 +1220,7 @@ def term_update(request, pk):
 
 
 @login_required
-# Delete a term
+@user_passes_test(is_staff_user)
 def term_delete(request, pk):
     term = get_object_or_404(Term, pk=pk)
     if request.method == 'POST':
@@ -1225,7 +1232,7 @@ def term_delete(request, pk):
 
 
 @login_required
-# List all CATs
+@user_passes_test(is_staff_user)
 def cat_list(request):
     cats = CAT.objects.all()
     return render(request, 'cats/cat_list.html', {'cats': cats})
@@ -1250,6 +1257,7 @@ def student_search(request):
 
 
 @login_required
+@user_passes_test(is_staff_user)
 def cat_create(request):
     if request.method == 'POST':
         form = CATForm(request.POST)
@@ -1268,13 +1276,14 @@ def cat_create(request):
 
 
 @login_required
-# View a single CAT record's details
+@user_passes_test(is_staff_user)
 def cat_detail(request, pk):
     cat = get_object_or_404(CAT, pk=pk)
     return render(request, 'cats/cat_detail.html', {'cat': cat})
 
 
 @login_required
+@user_passes_test(is_staff_user)
 def cat_update(request, pk):
     cat = get_object_or_404(CAT, pk=pk)
     if request.method == 'POST':
@@ -1290,7 +1299,7 @@ def cat_update(request, pk):
 
 
 @login_required
-# Delete a CAT record
+@user_passes_test(is_staff_user)
 def cat_delete(request, pk):
     cat = get_object_or_404(CAT, pk=pk)
     if request.method == 'POST':
@@ -1367,6 +1376,7 @@ def class_distribution_view(request):
 
 
 @login_required
+@user_passes_test(is_staff_user)
 def search_student(request):
     form = StudentSearchForm(request.GET or None)
     students = None
@@ -1384,8 +1394,8 @@ def search_student(request):
 
 
 #rankings for specific class
-
 @login_required
+@user_passes_test(is_staff_user)
 def student_rankings(request):
     # Get filter parameters from request
     selected_year = request.GET.get('year')
@@ -1517,7 +1527,10 @@ def _calculate_overall_grade(gpa):
     elif gpa >= 2.0:
         return 'C'
     return 'F'
+
+
 @login_required
+@user_passes_test(is_staff_user)
 def form_rankings(request):
     # Get filter parameters from request
     selected_year = request.GET.get('year')
@@ -1638,6 +1651,7 @@ def form_rankings(request):
     return render(request, 'rankings/form_rankings.html', context)
 
 @login_required
+@user_passes_test(is_staff_user)
 def stream_performance(request):
     # Get filter parameters
     selected_year = request.GET.get('year')
@@ -1773,6 +1787,7 @@ def _get_letter_grade(points):
 
 
 @login_required
+@user_passes_test(is_staff_user)
 def subject_performance(request):
     # Get filter parameters
     selected_year = request.GET.get('year')
@@ -1928,7 +1943,7 @@ def _get_letter_grade(points):
 
 
 @login_required
-# Create Teacher
+@user_passes_test(is_staff_user)
 def teacher_create(request):
     if request.method == 'POST':
         form = TeacherForm(request.POST, request.FILES)
@@ -1957,7 +1972,7 @@ def teacher_detail(request, teacher_id):
     })
 
 @login_required
-# Edit Teacher
+@user_passes_test(is_staff_user)
 def teacher_edit(request, teacher_id):
     teacher = get_object_or_404(Teacher, id=teacher_id)
     if request.method == 'POST':
@@ -1972,7 +1987,7 @@ def teacher_edit(request, teacher_id):
 
 
 @login_required
-# Delete Teacher
+@user_passes_test(is_staff_user)
 def teacher_delete(request, teacher_id):
     teacher = get_object_or_404(Teacher, id=teacher_id)
     if request.method == 'POST':
@@ -1983,7 +1998,7 @@ def teacher_delete(request, teacher_id):
 
 
 @login_required
-# List of all Teachers
+@user_passes_test(is_staff_user)
 def teacher_list(request):
     teachers = Teacher.objects.all()
     return render(request, 'teachers/teacher_list.html', {'teachers': teachers})
@@ -1991,7 +2006,7 @@ def teacher_list(request):
 
 
 @login_required
-# Create View
+@user_passes_test(is_staff_user)
 def create_staff(request):
     if request.method == 'POST':
         form = StaffForm(request.POST, request.FILES)
@@ -2004,21 +2019,21 @@ def create_staff(request):
 
 
 @login_required
-# List View (Read)
+@user_passes_test(is_staff_user)
 def staff_list(request):
     staff_members = Staff.objects.all()
     return render(request, 'staff/staff_list.html', {'staff_members': staff_members})
 
 
 @login_required
-# Detail View
+@user_passes_test(is_staff_user)
 def staff_detail(request, pk):
     staff_member = get_object_or_404(Staff, pk=pk)
     return render(request, 'staff/staff_detail.html', {'staff_member': staff_member})
 
 
 @login_required
-# Update View
+@user_passes_test(is_staff_user)
 def update_staff(request, pk):
     staff_member = get_object_or_404(Staff, pk=pk)
     if request.method == 'POST':
@@ -2032,7 +2047,7 @@ def update_staff(request, pk):
 
 
 @login_required
-# Delete View
+@user_passes_test(is_staff_user)
 def delete_staff(request, pk):
     staff_member = get_object_or_404(Staff, pk=pk)
     if request.method == 'POST':
@@ -2044,7 +2059,7 @@ def delete_staff(request, pk):
 
 
 @login_required
-# Create View
+@user_passes_test(is_staff_user)
 def create_nonstaff(request):
     if request.method == 'POST':
         form = NonStaffForm(request.POST, request.FILES)
@@ -2057,21 +2072,21 @@ def create_nonstaff(request):
 
 
 @login_required
-# List View (Read)
+@user_passes_test(is_staff_user)
 def nonstaff_list(request):
     nonstaff_members = NonStaff.objects.all()
     return render(request, 'nonstaff/nonstaff_list.html', {'nonstaff_members': nonstaff_members})
 
 
 @login_required
-# Detail View
+@user_passes_test(is_staff_user)
 def nonstaff_detail(request, pk):
     nonstaff_member = get_object_or_404(NonStaff, pk=pk)
     return render(request, 'nonstaff/nonstaff_detail.html', {'nonstaff_member': nonstaff_member})
 
 
 @login_required
-# Update View
+@user_passes_test(is_staff_user)
 def update_nonstaff(request, pk):
     nonstaff_member = get_object_or_404(NonStaff, pk=pk)
     if request.method == 'POST':
@@ -2085,7 +2100,7 @@ def update_nonstaff(request, pk):
 
 
 @login_required
-# Delete View
+@user_passes_test(is_staff_user)
 def delete_nonstaff(request, pk):
     nonstaff_member = get_object_or_404(NonStaff, pk=pk)
     if request.method == 'POST':
@@ -2097,7 +2112,7 @@ def delete_nonstaff(request, pk):
 
 
 @login_required
-# Create View
+@user_passes_test(is_staff_user)
 def create_intern(request):
     if request.method == 'POST':
         form = InternForm(request.POST, request.FILES)
@@ -2110,20 +2125,20 @@ def create_intern(request):
 
 
 @login_required
-# List View (Read)
+@user_passes_test(is_staff_user)
 def intern_list(request):
     interns = Intern.objects.all()
     return render(request, 'intern/intern_list.html', {'interns': interns})
 
 @login_required
-# Detail View
+@user_passes_test(is_staff_user)
 def intern_detail(request, pk):
     intern = get_object_or_404(Intern, pk=pk)
     return render(request, 'intern/intern_detail.html', {'intern': intern})
 
 
 @login_required
-# Update View
+@user_passes_test(is_staff_user)
 def update_intern(request, pk):
     intern = get_object_or_404(Intern, pk=pk)
     if request.method == 'POST':
@@ -2138,7 +2153,7 @@ def update_intern(request, pk):
 
 
 @login_required
-# Delete View
+@user_passes_test(is_staff_user)
 def delete_intern(request, pk):
     intern = get_object_or_404(Intern, pk=pk)
     if request.method == 'POST':
@@ -2209,6 +2224,8 @@ def student_results(request):
 import json
 from django.contrib import messages as flash_messages
 @login_required
+@user_passes_test(is_staff_user)
+
 def admin_dashboard(request):
     # Get student counts grouped by year
     yearly_data = Student.objects.annotate(year=ExtractYear('admission_date'))\
@@ -2561,6 +2578,7 @@ def enroll_subjects(request):
 
 
 #resources and revision material  views
+@login_required
 def add_resource(request):
     if request.method == 'POST':
         form = ResourceForm(request.POST, request.FILES)
@@ -2576,16 +2594,18 @@ def add_resource(request):
     return render(request, 'resources/add_resource.html', {'form': form})
 
 
+@login_required
 def resources_list(request):
     resources = Resource.objects.filter(is_active=True).order_by('-created_at')
     return render(request, 'resources/resources_list.html', {'resources': resources})
 
+@login_required
 def resource_detail(request, resource_id):
     resource = Resource.objects.get(id=resource_id)
     resource.increment_views()  # Increment views count each time a resource is accessed
     return render(request, 'resources/resource_detail.html', {'resource': resource})
 
-
+@login_required
 def resource_search(request):
     query = request.GET.get('query', '')
     resources = Resource.objects.filter(title__icontains=query)
@@ -2609,11 +2629,13 @@ def resource_search(request):
 
 
 #time table views
-
+@login_required
 def timetable_list(request):
     timetables = ExamTimeTable.objects.select_related('session').all()
     return render(request, 'time_table/timetable_list.html', {'timetables': timetables})
 
+@login_required
+@user_passes_test(is_staff_user)
 def create_timetable(request):
     if request.method == 'POST':
         form = ExamTimeTableForm(request.POST, request.FILES)
@@ -2625,6 +2647,8 @@ def create_timetable(request):
         form = ExamTimeTableForm()
     return render(request, 'time_table/timetable_form.html', {'form': form})
 
+@login_required
+@user_passes_test(is_staff_user)
 def update_timetable(request, pk):
     timetable = get_object_or_404(ExamTimeTable, pk=pk)
     if request.method == 'POST':
@@ -2637,6 +2661,8 @@ def update_timetable(request, pk):
         form = ExamTimeTableForm(instance=timetable)
     return render(request, 'time_table/timetable_form.html', {'form': form})
 
+@login_required
+@user_passes_test(is_staff_user)
 def delete_timetable(request, pk):
     timetable = get_object_or_404(ExamTimeTable, pk=pk)
     timetable.delete()
@@ -2644,6 +2670,7 @@ def delete_timetable(request, pk):
     return redirect('timetable_list')
 
 
+@login_required
 def exam_timetable_detail(request, pk):
     # Get the ExamTimeTable object by its primary key (pk)
     timetable = get_object_or_404(ExamTimeTable, pk=pk)
