@@ -1259,6 +1259,20 @@ def student_search(request):
         return JsonResponse(results, safe=False)
 
 
+def get_class_of_study(request):
+    student_id = request.GET.get('student_id')
+    try:
+        student = Student.objects.get(id=student_id)
+        class_of_study = student.current_class  # current_class is FK to Class_of_study
+        data = {
+            'class_of_study': f"{class_of_study.name} - {class_of_study.stream}"
+        }
+    except Student.DoesNotExist:
+        data = {'class_of_study': ''}
+    return JsonResponse(data)
+
+    
+
 @login_required
 @user_passes_test(is_staff_user)
 def cat_create(request):
@@ -1268,13 +1282,18 @@ def cat_create(request):
             cat = form.save(commit=False)
             student_id = request.POST.get('student')
             if student_id:
-                cat.student_id = student_id
+                try:
+                    student = Student.objects.get(id=student_id)
+                    cat.student = student
+                    # Set class_of_study directly
+                    cat.class_of_study = student.current_class
+                except Student.DoesNotExist:
+                    pass  # Optionally add an error message here
             cat.save()
             return redirect('cat_create')
     else:
         form = CATForm()
     return render(request, 'cats/cat_form.html', {'form': form})
-
 
 
 

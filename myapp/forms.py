@@ -154,9 +154,15 @@ class TermForm(forms.ModelForm):
 
 
 class CATForm(forms.ModelForm):
+    class_of_study = forms.CharField(
+        label='Class of Study',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'})
+    )
+
     class Meta:
         model = CAT
-        fields = ['student', 'subject', 'term', 'cat1', 'cat2', 'cat3']
+        fields = ['student', 'subject', 'term', 'class_of_study', 'cat1', 'cat2', 'cat3']
         widgets = {
             'student': forms.Select(attrs={'class': 'form-select'}),
             'subject': forms.Select(attrs={'class': 'form-select'}),
@@ -165,7 +171,6 @@ class CATForm(forms.ModelForm):
             'cat2': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'CAT 2 Score'}),
             'cat3': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'CAT 3 Score'}),
         }
-
 
 
 

@@ -13,23 +13,19 @@
                   <div class="col-md-12">
                       <label for="student-search" class="form-label">Search by Admission Number</label>
                       <input type="text" id="student-search" class="form-control" placeholder="Enter Admission Number">
-
                   </div>
 
-                  <!-- Subject Field -->
-                  <div class="col-md-6">
-                    
-                      <!-- Hidden field to store selected student ID -->
-                      <input type="hidden" name="student" id="student-id">
+                  <!-- Hidden field to store selected student ID -->
+                  <input type="hidden" name="student" id="student-id">
 
-                      <!-- Display Student Name after selection -->
+                  <!-- Display Student Name after selection -->
+                  <div class="col-md-6">
                       <label for="student-name" class="form-label mt-2">Student Name</label>
                       <input type="text" id="student-name" class="form-control" readonly>
-
                       <div class="text-danger">
                           {{ form.student.errors }}
                       </div>
-                </div>
+                  </div>
 
                   <!-- Subject Field -->
                   <div class="col-md-6">
@@ -47,6 +43,15 @@
                       <div class="text-danger">
                           {{ form.term.errors }}
                       </div>
+                  </div>
+
+                  <!-- Class of Study Field -->
+                  <div class="col-md-6">
+                    <label for="class_of_study" class="form-label">Class of Study</label>
+                    <input type="text" id="class_of_study" class="form-control" readonly>
+                    <div class="text-danger">
+                        {{ form.class_of_study.errors }}
+                    </div>
                   </div>
 
                   <!-- CAT 1 Field -->
@@ -96,8 +101,21 @@
             source: "{% url 'student_search' %}",  // AJAX endpoint
             minLength: 2,
             select: function(event, ui) {
+                // Fill student ID and name
                 $("#student-id").val(ui.item.id);  // Save student ID
                 $("#student-name").val(ui.item.name);  // Display student name
+    
+                // Fetch class_of_study via AJAX after selecting student
+                $.ajax({
+                    url: "{% url 'get_class_of_study' %}",
+                    data: {
+                        'student_id': ui.item.id
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        $("#class_of_study").val(data.class_of_study);  // Set Class of Study
+                    }
+                });
             }
         });
     });

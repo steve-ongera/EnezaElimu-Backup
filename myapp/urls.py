@@ -72,6 +72,7 @@ urlpatterns = [
     path('cats/', views.cat_list, name='cat_list'),
     path('cats/create/', views.cat_create, name='cat_create'),
     path('ajax/student-search/', views.student_search, name='student_search'),
+    path('get_class_of_study/', views.get_class_of_study, name='get_class_of_study'),
     path('cats/<int:pk>/', views.cat_detail, name='cat_detail'),
     path('cats/<int:pk>/update/', views.cat_update, name='cat_update'),
     path('cats/<int:pk>/delete/', views.cat_delete, name='cat_delete'),
