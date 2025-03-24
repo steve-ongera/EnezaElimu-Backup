@@ -83,8 +83,10 @@ urlpatterns = [
     path('student-results/', views.student_results, name='student_results'),
     #rankings
     path('rankings/', views.student_rankings, name='student_rankings'),
+    path('rankings/form/', views.form_rankings, name='form_rankings'),
     path('stream-performance/', views.stream_performance, name='stream_performance'),
     path('subject-performance/', views.subject_performance, name='subject_performance'),
+    #path('rankings/pdf_download/', views.rankings_pdf_download, name='rankings_pdf_download'),
 
     path('teachers/', views.teacher_list, name='teacher_list'),
     path('teachers/create/', views.teacher_create, name='teacher_create'),

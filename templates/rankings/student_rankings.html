@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container mx-auto px-4 py-6">
     <div class="pagetitle mb-6">
-        <h1 class="text-2xl font-bold">Student Rankings</h1>
+        <h1 class="text-2xl font-bold">Student Rankings per specific  class</h1>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
@@ -15,9 +15,10 @@
 
     
     <!-- Filter Form -->
+<!-- Filter Form -->
 <form method="get" class="mb-4 p-4 bg-light rounded shadow-sm">
     <div class="row">
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
             <label for="year" class="form-label">Year:</label>
             <select name="year" id="year" class="form-select">
                 {% for year in available_years %}
@@ -28,7 +29,7 @@
             </select>
         </div>
         
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
             <label for="term" class="form-label">Term:</label>
             <select name="term" id="term" class="form-select">
                 <option value="">All Terms</option>
@@ -40,7 +41,19 @@
             </select>
         </div>
         
-        <div class="col-md-4 mb-3 d-flex align-items-end">
+        <div class="col-md-3 mb-3">
+            <label for="class" class="form-label">Class:</label>
+            <select name="class" id="class" class="form-select">
+                <option value="">All Classes</option>
+                {% for class in available_classes %}
+                    <option value="{{ class.id }}" {% if class.id|stringformat:"s" == selected_class %}selected{% endif %}>
+                        {{ class.name }} - {{ class.stream }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-3 mb-3 d-flex align-items-end">
             <button type="submit" class="btn btn-primary w-100">
                 Filter
             </button>

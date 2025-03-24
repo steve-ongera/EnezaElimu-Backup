@@ -1383,16 +1383,17 @@ def search_student(request):
     return render(request, "search/search_student.html", {"form": form, "students": students})
 
 
-#rankings
+#rankings for specific class
 
 @login_required
 def student_rankings(request):
     # Get filter parameters from request
     selected_year = request.GET.get('year')
     selected_term = request.GET.get('term')
+    selected_class = request.GET.get('class')  # New parameter for class filtering
     
-    # Cache key construction
-    cache_key = f'rankings_{selected_year}_{selected_term}'
+    # Cache key construction with class parameter
+    cache_key = f'rankings_{selected_year}_{selected_term}_{selected_class}'
     cached_data = cache.get(cache_key)
     
     if cached_data:
@@ -1402,6 +1403,7 @@ def student_rankings(request):
     available_years = Term.objects.values_list('year', flat=True)\
         .distinct().order_by('-year')
     available_terms = Term.objects.values_list('name', flat=True).distinct()
+    available_classes = Class_of_study.objects.all()  # Get all available classes
     
     if not selected_year:
         selected_year = available_years.first()
@@ -1422,11 +1424,16 @@ def student_rankings(request):
     rankings = []
     
     for term in terms_query:
+        # Base query with prefetch
+        base_query = Student.objects.prefetch_related(cat_prefetch).filter(cats__term=term)
+        
+        # Apply class filter if selected
+        if selected_class:
+            base_query = base_query.filter(current_class_id=selected_class)
+        
         # Optimize student query with annotations and prefetch_related
         student_rankings = (
-            Student.objects
-            .prefetch_related(cat_prefetch)
-            .filter(cats__term=term)
+            base_query
             .annotate(
                 average_score=Coalesce(
                     Avg('cats__end_term'),
@@ -1484,8 +1491,10 @@ def student_rankings(request):
         'rankings': rankings,
         'available_years': available_years,
         'available_terms': available_terms,
+        'available_classes': available_classes,  # Pass available classes to template
         'selected_year': selected_year,
         'selected_term': selected_term,
+        'selected_class': selected_class,  # Pass selected class to template
     }
     
     # Cache the results
@@ -1509,7 +1518,171 @@ def _calculate_overall_grade(gpa):
         return 'C'
     return 'F'
 
-
+#ranking for specific form to know the best performing student to the least
+@login_required
+def form_rankings(request):
+    # Get filter parameters from request
+    selected_year = request.GET.get('year')
+    selected_term = request.GET.get('term')
+    selected_form = request.GET.get('form')  # Filter for specific form (Form 1, Form 2, etc.)
+    
+    # Cache key construction with form parameter
+    cache_key = f'form_rankings_{selected_year}_{selected_term}_{selected_form}'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        return render(request, 'rankings/form_rankings.html', cached_data)
+    
+    # Efficiently get filter options
+    available_years = Term.objects.values_list('year', flat=True)\
+        .distinct().order_by('-year')
+    available_terms = Term.objects.values_list('name', flat=True).distinct()
+    
+    # Get distinct form names (without stream)
+    available_forms = Class_of_study.objects.values_list('name', flat=True)\
+        .distinct().order_by('name')
+    
+    if not selected_year:
+        selected_year = available_years.first()
+    
+    selected_year = int(selected_year)
+    
+    # Optimize term query
+    terms_query = Term.objects.filter(year=selected_year)
+    if selected_term:
+        terms_query = terms_query.filter(name=selected_term)
+    
+    # Prefetch related CAT data
+    cat_prefetch = Prefetch(
+        'cats',
+        queryset=CAT.objects.select_related('subject')
+    )
+    
+    form_rankings = []
+    
+    for term in terms_query:
+        # Base query with prefetch
+        base_query = Student.objects.prefetch_related(cat_prefetch).filter(cats__term=term)
+        
+        # Apply form filter if selected
+        if selected_form:
+            base_query = base_query.filter(current_class__name=selected_form)
+        
+        # Optimize student query with annotations and prefetch_related
+        student_rankings = (
+            base_query
+            .annotate(
+                average_score=Coalesce(
+                    Avg('cats__end_term'),
+                    0.0
+                ),
+                subjects_count=Count('cats__subject', distinct=True),
+                total_grade_points=Coalesce(
+                    Avg('cats__grade_points'),
+                    0.0
+                )
+            )
+            .filter(subjects_count__gt=0)
+            .select_related('current_class')
+            .order_by('-average_score')
+        ).distinct()
+        
+        # Process results in chunks to reduce memory usage
+        CHUNK_SIZE = 50
+        term_results = {
+            'term': term,
+            'students': []
+        }
+        
+        # Group students by class stream if we're filtering by form
+        if selected_form:
+            # Create a dictionary to hold students by stream
+            streams = {}
+            
+            for student in student_rankings:
+                if not student.current_class:
+                    continue
+                    
+                stream = student.current_class.stream
+                if stream not in streams:
+                    streams[stream] = []
+                
+                # Get subject grades efficiently using prefetched data
+                subject_grades = [
+                    cat for cat in student.cats.all()
+                    if cat.term_id == term.id
+                ]
+                
+                student_data = {
+                    'student': student,
+                    'average_score': round(student.average_score, 2),
+                    'grade_point_average': round(student.total_grade_points, 2),
+                    'subjects': subject_grades,
+                    'total_subjects': student.subjects_count,
+                    'overall_grade': _calculate_overall_grade(student.total_grade_points)
+                }
+                
+                streams[stream].append(student_data)
+            
+            # Sort each stream by average score and add rank
+            for stream, students in streams.items():
+                sorted_students = sorted(students, key=lambda x: x['average_score'], reverse=True)
+                
+                for rank, student in enumerate(sorted_students, 1):
+                    student['rank'] = rank
+                
+                # Build the term results with stream info
+                term_results['streams'] = [
+                    {
+                        'name': stream,
+                        'students': sorted_students
+                    } for stream, sorted_students in streams.items()
+                ]
+        else:
+            # If no form selected, just show overall rankings
+            for rank, student in enumerate(student_rankings, 1):
+                # Get subject grades efficiently using prefetched data
+                subject_grades = [
+                    cat for cat in student.cats.all()
+                    if cat.term_id == term.id
+                ]
+                
+                student_data = {
+                    'rank': rank,
+                    'student': student,
+                    'average_score': round(student.average_score, 2),
+                    'grade_point_average': round(student.total_grade_points, 2),
+                    'subjects': subject_grades,
+                    'total_subjects': student.subjects_count,
+                    'overall_grade': _calculate_overall_grade(student.total_grade_points)
+                }
+                
+                term_results['students'].append(student_data)
+                
+                # Process in chunks to free up memory
+                if len(term_results['students']) >= CHUNK_SIZE:
+                    form_rankings.append(term_results)
+                    term_results = {
+                        'term': term,
+                        'students': []
+                    }
+        
+        form_rankings.append(term_results)
+    
+    context = {
+        'rankings': form_rankings,
+        'available_years': available_years,
+        'available_terms': available_terms,
+        'available_forms': available_forms,
+        'selected_year': selected_year,
+        'selected_term': selected_term,
+        'selected_form': selected_form,
+    }
+    
+    # Cache the results
+    cache.set(cache_key, context, timeout=3600)  # Cache for 1 hour
+    
+    return render(request, 'rankings/form_rankings.html', context)
 
 @login_required
 def stream_performance(request):
