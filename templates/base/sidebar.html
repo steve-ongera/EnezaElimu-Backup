@@ -123,6 +123,14 @@
               <i class="bi bi-circle"></i><span>Student Records</span>
             </a>
           </li>
+
+          <li>
+            <a href="{% url 'search_student'%}">
+              <i class="bi bi-circle"></i><span>Search Student</span>
+            </a>
+          </li>
+
+
           <li>
             <a href="{% url 'student_create'%}">
               <i class="bi bi-circle"></i><span>Add Student</span>
@@ -189,6 +197,32 @@
         </a>
         <ul id="icons-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
           <li>
+            <a href="{% url 'student_rankings'%}">
+              <i class="bi bi-circle"></i><span>Student Ranking</span>
+            </a>
+          </li>
+
+          
+
+          <li>
+            <a href="{% url 'form_rankings'%}">
+              <i class="bi bi-circle"></i><span>Form Ranking</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="{% url 'stream_performance'%}">
+              <i class="bi bi-circle"></i><span>stream performance</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="{% url 'subject_performance'%}">
+              <i class="bi bi-circle"></i><span>subject performance</span>
+            </a>
+          </li>
+
+          <li>
             <a href="{% url 'cat_list'%}">
               <i class="bi bi-circle"></i><span>CAT Records</span>
             </a>
@@ -239,12 +273,7 @@
             </a>
           </li>
 
-          <li class="nav-item">
-            <a class="nav-link collapsed" href="{% url 'search_student'%}">
-              <i class="bi bi-card-list"></i>
-              <span>search student</span>
-            </a>
-          </li>
+          
 
           <li class="nav-item">
             <a class="nav-link collapsed" href="{% url 'student_results'%}">
@@ -260,24 +289,11 @@
         </ul>
       </li><!-- End Staff Nav --><!-- End F.A.Q Page Nav -->
 
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'student_rankings'%}">
-          <i class="bi bi-card-list"></i>
-          <span>Student Ranking</span>
-        </a>
-      </li><!-- End Register Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'stream_performance'%}">
+        <a class="nav-link collapsed" href="{% url 'search_student'%}">
           <i class="bi bi-card-list"></i>
-          <span>stream performance</span>
-        </a>
-      </li><!-- End Register Page Nav -->
-
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'subject_performance'%}">
-          <i class="bi bi-card-list"></i>
-          <span>subject performance</span>
+          <span>Search Student</span>
         </a>
       </li><!-- End Register Page Nav -->
 

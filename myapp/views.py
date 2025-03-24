@@ -1517,8 +1517,6 @@ def _calculate_overall_grade(gpa):
     elif gpa >= 2.0:
         return 'C'
     return 'F'
-
-#ranking for specific form to know the best performing student to the least
 @login_required
 def form_rankings(request):
     # Get filter parameters from request
@@ -1594,78 +1592,33 @@ def form_rankings(request):
             'students': []
         }
         
-        # Group students by class stream if we're filtering by form
-        if selected_form:
-            # Create a dictionary to hold students by stream
-            streams = {}
+        # No stream grouping - process all students in a single list
+        for rank, student in enumerate(student_rankings, 1):
+            # Get subject grades efficiently using prefetched data
+            subject_grades = [
+                cat for cat in student.cats.all()
+                if cat.term_id == term.id
+            ]
             
-            for student in student_rankings:
-                if not student.current_class:
-                    continue
-                    
-                stream = student.current_class.stream
-                if stream not in streams:
-                    streams[stream] = []
-                
-                # Get subject grades efficiently using prefetched data
-                subject_grades = [
-                    cat for cat in student.cats.all()
-                    if cat.term_id == term.id
-                ]
-                
-                student_data = {
-                    'student': student,
-                    'average_score': round(student.average_score, 2),
-                    'grade_point_average': round(student.total_grade_points, 2),
-                    'subjects': subject_grades,
-                    'total_subjects': student.subjects_count,
-                    'overall_grade': _calculate_overall_grade(student.total_grade_points)
-                }
-                
-                streams[stream].append(student_data)
+            student_data = {
+                'rank': rank,
+                'student': student,
+                'average_score': round(student.average_score, 2),
+                'grade_point_average': round(student.total_grade_points, 2),
+                'subjects': subject_grades,
+                'total_subjects': student.subjects_count,
+                'overall_grade': _calculate_overall_grade(student.total_grade_points)
+            }
             
-            # Sort each stream by average score and add rank
-            for stream, students in streams.items():
-                sorted_students = sorted(students, key=lambda x: x['average_score'], reverse=True)
-                
-                for rank, student in enumerate(sorted_students, 1):
-                    student['rank'] = rank
-                
-                # Build the term results with stream info
-                term_results['streams'] = [
-                    {
-                        'name': stream,
-                        'students': sorted_students
-                    } for stream, sorted_students in streams.items()
-                ]
-        else:
-            # If no form selected, just show overall rankings
-            for rank, student in enumerate(student_rankings, 1):
-                # Get subject grades efficiently using prefetched data
-                subject_grades = [
-                    cat for cat in student.cats.all()
-                    if cat.term_id == term.id
-                ]
-                
-                student_data = {
-                    'rank': rank,
-                    'student': student,
-                    'average_score': round(student.average_score, 2),
-                    'grade_point_average': round(student.total_grade_points, 2),
-                    'subjects': subject_grades,
-                    'total_subjects': student.subjects_count,
-                    'overall_grade': _calculate_overall_grade(student.total_grade_points)
+            term_results['students'].append(student_data)
+            
+            # Process in chunks to free up memory
+            if len(term_results['students']) >= CHUNK_SIZE and False:  # Disabled chunking to keep all students in one list
+                form_rankings.append(term_results)
+                term_results = {
+                    'term': term,
+                    'students': []
                 }
-                
-                term_results['students'].append(student_data)
-                
-                # Process in chunks to free up memory
-                if len(term_results['students']) >= CHUNK_SIZE:
-                    form_rankings.append(term_results)
-                    term_results = {
-                        'term': term,
-                        'students': []
-                    }
         
         form_rankings.append(term_results)
     
