@@ -7,7 +7,7 @@
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
-            <li class="breadcrumb-item">Students</li>
+            <li class="breadcrumb-item">Students records</li>
             <li class="breadcrumb-item active"><a href="{% url 'student_create' %}">Add Student</a></li>
         </ol>
     </nav>
@@ -19,7 +19,9 @@
 
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Student List</h5>
+                    <h5 class="card-title">Student Data Records List</h5>
+
+                    <a href="{% url 'promote_students' %}" class="btn btn-success mb-3">Promote Students</a>
 
                     <div class="table-responsive">
                         <table class="table table-striped datatable">
@@ -43,7 +45,13 @@
                                         </a>
                                     </td>
                                     <td><a href="{% url 'student_detail' student.id %}">{{ student.admission_number }}</a></td>
-                                    <td>{{ student.current_class }}</td>
+                                    <td>
+                                        {% if student.current_class %}
+                                            {{ student.current_class }}
+                                        {% else %}
+                                            Graduated
+                                        {% endif %}
+                                    </td>
                                     <td>{{ student.father_phone }}</td>
                                     <td>{{ student.father_name }}</td>
                                     <td><a href="{% url 'student_update' student.pk %}">Edit</a></td>

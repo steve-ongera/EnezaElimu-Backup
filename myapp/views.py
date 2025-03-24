@@ -2791,6 +2791,7 @@ def student_teachers_view(request):
     return render(request, 'students/teachers_list.html', context)
 
 
+@login_required
 def current_term_events(request):
     # Get the current term
     current_term = Term.objects.filter(is_current=True).first()
@@ -2806,3 +2807,41 @@ def current_term_events(request):
     }
     
     return render(request, 'events/current_term_events.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def promote_students(request):
+    form_order = ['Form 1', 'Form 2', 'Form 3', 'Form 4']
+
+    if request.method == 'POST':
+        classes = Class_of_study.objects.all()
+
+        for student in Student.objects.filter(is_active=True):
+            current_class = student.current_class
+            if current_class:
+                current_form = current_class.name
+                current_stream = current_class.stream
+
+                try:
+                    current_index = form_order.index(current_form)
+                except ValueError:
+                    continue
+
+                if current_index == len(form_order) - 1:
+                    # Graduated
+                    student.current_class = None
+                    student.is_active = False
+                    student.remarks = "Graduated"
+                else:
+                    next_form = form_order[current_index + 1]
+                    try:
+                        next_class = Class_of_study.objects.get(name=next_form, stream=current_stream)
+                        student.current_class = next_class
+                    except Class_of_study.DoesNotExist:
+                        continue
+                student.save()
+
+        messages.success(request, "Students promoted successfully!")
+        return redirect('students_list')  # Replace with your actual view
+
+    return render(request, 'students/promote_students.html')

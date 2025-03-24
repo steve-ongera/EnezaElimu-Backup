@@ -6,6 +6,7 @@ urlpatterns = [
     path('general_student_list', views.general_student_list, name='general_student_list'),
     path('student/<int:student_id>/term/<int:term_id>/', views.student_marks, name='student_marks'),
     path('student/<int:student_id>/progress/', views.student_progress, name='student_progress'),
+    path('promote-students/', views.promote_students, name='promote_students'),
     
     #urls for all classes / Streams 
     path('classes_lists/', views.class_lists, name='class_lists'),

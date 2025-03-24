@@ -20,7 +20,9 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Student List</h5>
-
+                
+                    <a href="{% url 'promote_students' %}" class="btn btn-success mb-3">Promote Students</a>
+                
                     <div class="table-responsive">
                         <table class="table table-striped datatable">
                             <thead>
@@ -43,7 +45,13 @@
                                         </a>
                                     </td>
                                     <td><a href="{% url 'student_detail' student.id %}">{{ student.admission_number }}</a></td>
-                                    <td>{{ student.class_name }}</td>
+                                    <td>
+                                        {% if student.current_class %}
+                                            {{ student.current_class }}
+                                        {% else %}
+                                            Graduated
+                                        {% endif %}
+                                    </td>
                                     <td>{{ student.phone }}</td>
                                     <td>{{ student.parent_guardian }}</td>
                                     <td><a href="{% url 'student_update' student.pk %}">Edit</a></td>
@@ -52,10 +60,10 @@
                                 {% endfor %}
                             </tbody>
                         </table>
-                        <!-- End Table with stripped rows -->
                     </div>
-
+                
                 </div>
+                
             </div>
         </div>
     </div>

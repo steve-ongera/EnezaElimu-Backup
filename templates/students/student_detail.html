@@ -18,7 +18,12 @@
                <div class="row mb-3">
                    <div class="col-md-6">
                        <h6 class="text-muted">Class</h6>
-                       <p>{{ student.current_class }}</p>
+                       {% if student.current_class %}
+                           <p>{{ student.current_class }}</p>
+                        {% else %}
+                             <p> Graduated</p>
+                        {% endif %}
+                       
                    </div>
                    <div class="col-md-6">
                        <h6 class="text-muted">Reg Number</h6>
